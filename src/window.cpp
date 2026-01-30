@@ -10,6 +10,7 @@ Window::Window(int width, int height, std::string title)
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+  glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
   window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
   glfwSetWindowSize(window, width, height);
@@ -23,11 +24,5 @@ Window::Window(int width, int height, std::string title)
       std::cerr << "Failed to initialize GLAD" << std::endl;
       glfwTerminate();
     }
-    // glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   }
 }
-
-// void processInput(GLFWwindow *window) {
-//   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-//     glfwSetWindowShouldClose(window, true);
-// }

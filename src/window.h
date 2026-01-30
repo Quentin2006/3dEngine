@@ -15,6 +15,8 @@ public:
     glfwSetKeyCallback(window, callback);
   }
 
+  GLFWwindow *getGLFWwindow() { return window; }
+
 private:
   GLFWwindow *window;
   int width, height;

@@ -15,13 +15,21 @@ Buffer::Buffer() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 }
+
 Buffer::~Buffer() {
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
 }
 
-void Buffer::loadVertices(const std::vector<float> &vertices) {
+void Buffer::loadVertices(const std::vector<glm::vec3> &vertices) {
+  // 1. Bind the specific buffer we created in the constructor
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(),
-               GL_STATIC_DRAW);
+
+  // 2. Upload the data
+  // CORRECT SIZE CALCULATION: number of elements * size of one element
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
+               vertices.data(), GL_STATIC_DRAW);
+
+  // 3. Unbind the buffer (good practice)
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

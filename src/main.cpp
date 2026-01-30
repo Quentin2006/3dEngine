@@ -1,7 +1,7 @@
 #include "app.h"
 
-const unsigned int WIDTH = 500;
-const unsigned int HEIGHT = 500;
+const unsigned int WIDTH = 1000;
+const unsigned int HEIGHT = 1000;
 
 int main() {
   App app(WIDTH, HEIGHT, "OpenGL Template");
