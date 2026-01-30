@@ -14,6 +14,7 @@ void Shader::loadShaders() {
 
   currentShaderProgram =
       createShaderProgram(vertexSource.c_str(), fragmentSource.c_str());
+  glUseProgram(currentShaderProgram);
 }
 
 std::string Shader::readFile(const char *path) {
@@ -63,4 +64,8 @@ unsigned int Shader::compileShader(unsigned int type, const char *source) {
     return 0;
   }
   return shader;
+}
+
+int Shader::addUBO(const std::string &name) {
+  return glGetUniformLocation(currentShaderProgram, name.c_str());
 }
