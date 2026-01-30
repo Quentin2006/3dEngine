@@ -125,6 +125,8 @@ void App::run() {
       glGetUniformLocation(shader.getShaderProgram(), "view");
   unsigned int projLoc =
       glGetUniformLocation(shader.getShaderProgram(), "projection");
+  unsigned int timeLoc =
+      glGetUniformLocation(shader.getShaderProgram(), "time");
 
   // load the vertices into the buffer and bind the arrat to VAO
   buffer.loadVertices(cube);
@@ -153,11 +155,14 @@ void App::run() {
       camera.rotateYaw(ROTATION_SPEED);
 
     // clear the screen
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.05f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // activate shader
     glUseProgram(shader.getShaderProgram());
+
+    // update time
+    glUniform1f(timeLoc, (float)glfwGetTime());
 
     // 1. projection
     // Only needs to change if window resizes, but fine to set every frame for
