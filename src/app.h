@@ -1,8 +1,9 @@
 #include "../include/glad/glad.h"
-#include "buffer.h"
 #include "camera.h"
+#include "object.h"
 #include "shader.h"
 #include "window.h"
+#include <memory>
 
 struct InputState {
   bool w = false, a = false, s = false, d = false;
@@ -13,12 +14,14 @@ struct InputState {
 class App {
 public:
   App(int width, int height, std::string title);
+
   void run();
+  void move();
 
   Window window;
   Shader shader;
   Camera camera;
-  Buffer buffer;
+  std::vector<std::unique_ptr<Object>> objs;
   InputState input;
 
 private:

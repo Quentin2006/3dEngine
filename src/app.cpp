@@ -3,47 +3,49 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
-#include <vector>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
-#include <vector>
 
 constexpr float MOVEMENT_SPEED = 0.05f;
 constexpr float ROTATION_SPEED = 0.7f;
-
 const std::vector<glm::vec3> cube = {
-    // Back face
-    glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f),
-    glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.5f, -0.5f),
-    glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-0.5f, -0.5f, -0.5f),
+    // Back face - viewed from -Z, CCW winding
+    // Normal: (0, 0, -1)
+    glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(-0.5f, -0.5f, -0.5f),
+    glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-0.5f, 0.5f, -0.5f),
+    glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f),
 
-    // Front face
+    // Front face - viewed from +Z, CCW winding
+    // Normal: (0, 0, 1)
     glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, -0.5f, 0.5f),
     glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f),
     glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-0.5f, -0.5f, 0.5f),
 
-    // Left face
-    glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-0.5f, 0.5f, -0.5f),
-    glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-0.5f, -0.5f, -0.5f),
-    glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(-0.5f, 0.5f, 0.5f),
+    // Left face - viewed from -X, CCW winding
+    // Normal: (-1, 0, 0)
+    glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-0.5f, -0.5f, 0.5f),
+    glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-0.5f, 0.5f, 0.5f),
+    glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-0.5f, -0.5f, -0.5f),
 
-    // Right face
-    glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, -0.5f),
-    glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f),
-    glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f),
+    // Right face - viewed from +X, CCW winding
+    // Normal: (1, 0, 0)
+    glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, -0.5f, -0.5f),
+    glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.5f, -0.5f),
+    glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, -0.5f, 0.5f),
 
-    // Bottom face
+    // Bottom face - viewed from -Y, CCW winding
+    // Normal: (0, -1, 0)
+    glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, 0.5f),
+    glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(-0.5f, -0.5f, 0.5f),
     glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f),
-    glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, -0.5f, 0.5f),
-    glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(-0.5f, -0.5f, -0.5f),
 
-    // Top face
-    glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.5f, -0.5f),
+    // Top face - viewed from +Y, CCW winding
+    // Normal: (0, 1, 0)
+    glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-0.5f, 0.5f, 0.5f),
     glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f),
-    glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-0.5f, 0.5f, -0.5f)};
-
+    glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(-0.5f, 0.5f, -0.5f)};
 void key_callback(GLFWwindow *window, int key, int, int action, int) {
   App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
 
@@ -111,61 +113,73 @@ App::App(int width, int height, std::string title)
 
   // CONFIG
   glViewport(0, 0, window.getWidth(), window.getHeight());
+  glClearColor(0.05f, 0.1f, 0.1f, 1.0f);
   glEnable(GL_DEPTH_TEST);
 
+  // Face culling - skip rendering inside faces
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glFrontFace(GL_CCW);
+
+  // Blending - enables transparency
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // needed to get class instance in window callback
   glfwSetWindowUserPointer(window.getGLFWwindow(), this);
   glfwSetKeyCallback(window.getGLFWwindow(), key_callback);
 }
 
 void App::run() {
   // get uniform location, now that the shader exists, we can find the ID
-  unsigned int modelLoc =
-      glGetUniformLocation(shader.getShaderProgram(), "model");
-  unsigned int viewLoc =
-      glGetUniformLocation(shader.getShaderProgram(), "view");
-  unsigned int projLoc =
-      glGetUniformLocation(shader.getShaderProgram(), "projection");
-  unsigned int timeLoc =
-      glGetUniformLocation(shader.getShaderProgram(), "time");
+  unsigned int modelLoc = shader.addUBO("model");
+  unsigned int viewLoc = shader.addUBO("view");
+  unsigned int projLoc = shader.addUBO("projection");
+  unsigned int timeLoc = shader.addUBO("time");
 
-  // load the vertices into the buffer and bind the arrat to VAO
-  buffer.loadVertices(cube);
+  // Test 1: Position - 5 cubes in a row at different X positions
+  for (int i = 0; i < 5; i++) {
+    auto obj = std::make_unique<Object>();
+    obj->loadVertices(cube);
+    obj->setPosition({i * 2.0f - 4.0f, 0, 0}); // -4, -2, 0, 2, 4
+    objs.push_back(std::move(obj));
+  }
+
+  // Test 2: Scale - one big cube at top
+  auto bigCube = std::make_unique<Object>();
+  bigCube->loadVertices(cube);
+  bigCube->setPosition({0, 3, 0});
+  bigCube->setScale({2, 2, 2}); // 2x bigger
+  objs.push_back(std::move(bigCube));
+
+  // Test 3: Rotation - 4 rotated cubes at bottom
+  for (int i = 0; i < 4; i++) {
+    auto obj = std::make_unique<Object>();
+    obj->loadVertices(cube);
+    obj->setPosition({(i - 1.5f) * 2.0f, -3, 0});
+    obj->setRotation({0, i * 45.0f, 0}); // 0°, 45°, 90°, 135°
+    objs.push_back(std::move(obj));
+  }
+
+  // Test 4: Combined transform - small rotated cube
+  auto combined = std::make_unique<Object>();
+  combined->loadVertices(cube);
+  combined->setPosition({3, 3, 0});
+  combined->setRotation({45, 45, 0});
+  combined->setScale({0.5, 0.5, 0.5}); // Half size
+  objs.push_back(std::move(combined));
 
   while (!window.shouldClose()) {
-    // Process input for smooth movement
-    if (input.w)
-      camera.moveForward(MOVEMENT_SPEED);
-    if (input.s)
-      camera.moveForward(-MOVEMENT_SPEED);
-    if (input.a)
-      camera.moveRight(-MOVEMENT_SPEED);
-    if (input.d)
-      camera.moveRight(MOVEMENT_SPEED);
-    if (input.q)
-      camera.moveUp(MOVEMENT_SPEED);
-    if (input.e)
-      camera.moveUp(-MOVEMENT_SPEED);
-    if (input.up)
-      camera.rotatePitch(ROTATION_SPEED);
-    if (input.down)
-      camera.rotatePitch(-ROTATION_SPEED);
-    if (input.left)
-      camera.rotateYaw(-ROTATION_SPEED);
-    if (input.right)
-      camera.rotateYaw(ROTATION_SPEED);
+    move();
 
     // clear the screen
-    glClearColor(0.05f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // activate shader
-    glUseProgram(shader.getShaderProgram());
 
     // update time
     glUniform1f(timeLoc, (float)glfwGetTime());
 
     // 1. projection
-    // Only needs to change if window resizes, but fine to set every frame for
+    //  Only needs to change if window resizes, but fine to set every frame for
     // now
     glUniformMatrix4fv(projLoc, 1, GL_FALSE,
                        glm::value_ptr(camera.getProjectionMatrix()));
@@ -177,19 +191,39 @@ void App::run() {
 
     // 3. model
     // what encode the scale, position, and rotation
-    glm::mat4 model = glm::mat4(1.0f);
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    for (auto &obj : objs) {
+      obj->updateModelMatrix();
+      glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
+                         glm::value_ptr(obj->getModelMatrix()));
+      obj->draw();
+    }
 
-    // bind vao
-    glBindVertexArray(buffer.getVAO());
-
-    // draw
-    glDrawArrays(GL_TRIANGLES, 0, cube.size());
-
-    // snap and pull
     window.swapBuffers();
-    glfwPollEvents();
   }
 
   glfwTerminate();
+}
+
+// would like to abstract into camera class
+void App::move() {
+  if (input.w)
+    camera.moveForward(MOVEMENT_SPEED);
+  if (input.s)
+    camera.moveForward(-MOVEMENT_SPEED);
+  if (input.a)
+    camera.moveRight(-MOVEMENT_SPEED);
+  if (input.d)
+    camera.moveRight(MOVEMENT_SPEED);
+  if (input.q)
+    camera.moveUp(MOVEMENT_SPEED);
+  if (input.e)
+    camera.moveUp(-MOVEMENT_SPEED);
+  if (input.up)
+    camera.rotatePitch(ROTATION_SPEED);
+  if (input.down)
+    camera.rotatePitch(-ROTATION_SPEED);
+  if (input.left)
+    camera.rotateYaw(-ROTATION_SPEED);
+  if (input.right)
+    camera.rotateYaw(ROTATION_SPEED);
 }
