@@ -41,5 +41,8 @@ $(BINDIR):
 run: $(TARGET)
 	./$(TARGET)
 
+debug: $(OBJECTS) | $(BINDIR) $(DIRS)
+	$(CXX) $(OBJECTS) -o $(TARGET) $(LDFLAGS) -g
+
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)

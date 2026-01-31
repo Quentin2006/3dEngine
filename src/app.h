@@ -39,9 +39,7 @@ public:
   App(int width, int height, std::string title);
 
   void run();
-  void move();
-
-  unsigned int projLoc;
+  void move(float deltaTime);
 
   Window window;
   Shader shader;

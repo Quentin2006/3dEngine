@@ -17,6 +17,11 @@ public:
   void setRotation(const glm::vec3 &rot);
   void setScale(const glm::vec3 &scale);
 
+  // Add to transform
+  void addPosition(const glm::vec3 &pos);
+  void addRotation(const glm::vec3 &rot);
+  void addScale(const glm::vec3 &scale);
+
   // Load vertex data into the object's buffer
   void loadVertices(const std::vector<glm::vec3> &vertices);
 
