@@ -145,30 +145,6 @@ void App::run() {
     objs.push_back(std::move(obj));
   }
 
-  // Test 2: Scale - one big cube at top
-  auto bigCube = std::make_unique<Object>();
-  bigCube->loadVertices(cube);
-  bigCube->setPosition({0, 3, 0});
-  bigCube->setScale({2, 2, 2}); // 2x bigger
-  objs.push_back(std::move(bigCube));
-
-  // Test 3: Rotation - 4 rotated cubes at bottom
-  for (int i = 0; i < 4; i++) {
-    auto obj = std::make_unique<Object>();
-    obj->loadVertices(cube);
-    obj->setPosition({(i - 1.5f) * 2.0f, -3, 0});
-    obj->setRotation({0, i * 45.0f, 0}); // 0°, 45°, 90°, 135°
-    objs.push_back(std::move(obj));
-  }
-
-  // Test 4: Combined transform - small rotated cube
-  auto combined = std::make_unique<Object>();
-  combined->loadVertices(cube);
-  combined->setPosition({3, 3, 0});
-  combined->setRotation({45, 45, 0});
-  combined->setScale({0.5, 0.5, 0.5}); // Half size
-  objs.push_back(std::move(combined));
-
   while (!window.shouldClose()) {
     move();
 
