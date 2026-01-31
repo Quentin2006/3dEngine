@@ -7,10 +7,22 @@ public:
   Buffer();
   ~Buffer();
 
-  void loadVertices(const std::vector<glm::vec3> &vertices);
+  // Prevent copying/moving (OpenGL resources must stay in one place)
+  Buffer(const Buffer &) = delete;
+  Buffer &operator=(const Buffer &) = delete;
+  Buffer(Buffer &&) = delete;
+  Buffer &operator=(Buffer &&) = delete;
 
+  // Upload vertex data to GPU and configure vertex attributes.
+  // Must be called before rendering. Can be called multiple times to update
+  // data.
+  void uploadVertices(const std::vector<glm::vec3> &vertices);
+
+  // Returns the OpenGL VAO handle for binding before drawing
   unsigned int getVAO() { return VAO; }
 
 private:
-  unsigned int VAO, VBO;
+  unsigned int
+      VAO; // Vertex Array Object - stores vertex attribute configuration
+  unsigned int VBO; // Vertex Buffer Object - stores actual vertex data on GPU
 };

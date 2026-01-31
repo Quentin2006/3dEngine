@@ -1,3 +1,4 @@
+#include <map>
 #include <string>
 
 class Shader {
@@ -17,5 +18,5 @@ private:
   std::string vertexSource;
   std::string fragmentSource;
   unsigned int currentShaderProgram;
-  // lastVertexModTime, lastFragmentModTime;
+  std::map<std::string, unsigned int> uniformLocations;
 };

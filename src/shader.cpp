@@ -9,8 +9,8 @@ Shader::Shader() {}
 Shader::~Shader() { glDeleteProgram(currentShaderProgram); }
 
 void Shader::loadShaders() {
-  vertexSource = readFile("src/shaders/vertex.glsl");
-  fragmentSource = readFile("src/shaders/fragment.glsl");
+  vertexSource = readFile("src/shaders/shader.vert");
+  fragmentSource = readFile("src/shaders/shader.frag");
 
   currentShaderProgram =
       createShaderProgram(vertexSource.c_str(), fragmentSource.c_str());

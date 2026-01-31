@@ -9,7 +9,10 @@ public:
 
   bool shouldClose() { return glfwWindowShouldClose(window); }
 
-  void swapBuffers() { glfwSwapBuffers(window); }
+  void swapBuffers() {
+    glfwPollEvents();
+    glfwSwapBuffers(window);
+  }
 
   void setWindowCallback(GLFWkeyfun callback) {
     glfwSetKeyCallback(window, callback);
