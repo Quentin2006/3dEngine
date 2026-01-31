@@ -5,14 +5,21 @@
 
 class Camera {
 public:
-  Camera(float FOV, int width, int height) {
+  Camera(float FOV_, int width_, int height_, float zNear_ = 0.1f,
+         float zFar_ = 100.0f) {
+    FOV = FOV_;
+    width = width_;
+    height = height_;
+    zNear = zNear_;
+    zFar = zFar_;
+
     position = glm::vec3(0.0f, 0.0f, 3.0f);
     up = glm::vec3(0.0f, 1.0f, 0.0f);
     yaw = -90.0f;
     pitch = 0.0f;
     updateFront();
     projection = glm::perspective(glm::radians(FOV),
-                                  (float)width / (float)height, 0.1f, 100.0f);
+                                  (float)width / (float)height, zNear, zFar);
   }
 
   void move(const glm::vec3 &deltaPos) { position += deltaPos; }
@@ -22,6 +29,28 @@ public:
   void rotateYaw(float delta);
   void rotatePitch(float delta);
 
+  void updateAspect(int width_, int height_) {
+    width = width_;
+    height = height_;
+
+    projection = glm::perspective(glm::radians(FOV),
+                                  (float)width / (float)height, zNear, zFar);
+  }
+
+  void updateFOV(float FOV_) {
+    FOV = FOV_;
+    projection = glm::perspective(glm::radians(FOV),
+                                  (float)width / (float)height, zNear, zFar);
+  }
+
+  void updateZNearZFar(float zNear_, float zFar_) {
+    zNear = zNear_;
+    zFar = zFar_;
+
+    projection = glm::perspective(glm::radians(FOV),
+                                  (float)width / (float)height, zNear, zFar);
+  }
+
   glm::mat4 getViewMatrix() {
     return glm::lookAt(position, position + front, up);
   };
@@ -29,6 +58,8 @@ public:
   glm::mat4 getProjectionMatrix() { return projection; }
 
 private:
+  float FOV, zNear, zFar;
+  int width, height;
   glm::vec3 position;
   glm::vec3 front;
   glm::vec3 up;

@@ -1,4 +1,5 @@
 #include "app.h"
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -79,7 +80,6 @@ void key_callback(GLFWwindow *window, int key, int, int action, int) {
     return;
   case Controls::RELOAD_SHADERS:
     if (pressed) {
-      std::cerr << "Reloading shaders" << std::endl;
       app->shader.loadShaders();
     }
     return;
@@ -99,9 +99,30 @@ void key_callback(GLFWwindow *window, int key, int, int action, int) {
     return;
   }
 }
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
+
+  if (!app)
+    return;
+  std::cerr << "Framebuffer resized to " << width << "x" << height << std::endl;
+
+  // UPDATE WIDTH
+  app->window.setWidth(width);
+  app->window.setHeight(height);
+
+  // UPDATE PROJECTION MATRIX
+  app->camera.updateAspect(width, height);
+
+  glUniformMatrix4fv(app->projLoc, 1, GL_FALSE,
+                     glm::value_ptr(app->camera.getProjectionMatrix()));
+
+  glViewport(0, 0, width, height);
+}
+
 App::App(int width, int height, std::string title)
-    : window(width, height, title), shader(), camera(45.f, width, height),
-      frameCounter(0) {
+    : window(width, height, title), shader(),
+      camera(45.f, width, height, 0.1f, 1000.f), frameCounter(0) {
   if (!gladLoadGLLoader((void *(*)(const char *))glfwGetProcAddress)) {
     std::cerr << "Failed to initialize GLAD" << std::endl;
     // Handle error (throw exception or exit)
@@ -128,21 +149,29 @@ App::App(int width, int height, std::string title)
   // needed to get class instance in window callback
   glfwSetWindowUserPointer(window.getGLFWwindow(), this);
   glfwSetKeyCallback(window.getGLFWwindow(), key_callback);
+  glfwSetFramebufferSizeCallback(window.getGLFWwindow(),
+                                 framebuffer_size_callback);
 }
 
 void App::run() {
   // get uniform location, now that the shader exists, we can find the ID
   unsigned int modelLoc = shader.addUBO("model");
   unsigned int viewLoc = shader.addUBO("view");
-  unsigned int projLoc = shader.addUBO("projection");
+  projLoc = shader.addUBO("projection");
   unsigned int timeLoc = shader.addUBO("time");
 
+  // NOTE: we change projection matix on window resize
+  glUniformMatrix4fv(projLoc, 1, GL_FALSE,
+                     glm::value_ptr(camera.getProjectionMatrix()));
+
   // Test 1: Position - 5 cubes in a row at different X positions
-  for (int i = 0; i < 5; i++) {
-    auto obj = std::make_unique<Object>();
-    obj->loadVertices(cube);
-    obj->setPosition({i * 2.0f - 4.0f, 0, 0}); // -4, -2, 0, 2, 4
-    objs.push_back(std::move(obj));
+  for (int i = 0; i < 10; i++) {
+    for (int j = 0; j < 10; j++) {
+      auto obj = std::make_unique<Object>();
+      obj->loadVertices(cube);
+      obj->setPosition({i * 2.f, -5, j * 2.f});
+      objs.push_back(std::move(obj));
+    }
   }
 
   while (!window.shouldClose()) {
@@ -154,18 +183,12 @@ void App::run() {
     // update time
     glUniform1f(timeLoc, (float)glfwGetTime());
 
-    // 1. projection
-    //  Only needs to change if window resizes, but fine to set every frame for
-    // now
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE,
-                       glm::value_ptr(camera.getProjectionMatrix()));
-
-    // 2. view
+    // 1. view
     // position of camersa
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE,
                        glm::value_ptr(camera.getViewMatrix()));
 
-    // 3. model
+    // 2. model
     // what encode the scale, position, and rotation
     for (auto &obj : objs) {
       obj->updateModelMatrix();
