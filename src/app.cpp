@@ -59,40 +59,40 @@ void key_callback(GLFWwindow *window, int key, int, int action, int) {
     return;
 
   switch (key) {
-  case GLFW_KEY_W:
+  case Controls::MOVE_FORWARD:
     app->input.w = pressed;
     return;
-  case GLFW_KEY_S:
+  case Controls::MOVE_BACKWARD:
     app->input.s = pressed;
     return;
-  case GLFW_KEY_A:
+  case Controls::MOVE_LEFT:
     app->input.a = pressed;
     return;
-  case GLFW_KEY_D:
+  case Controls::MOVE_RIGHT:
     app->input.d = pressed;
     return;
-  case GLFW_KEY_Q:
+  case Controls::MOVE_DOWN:
     app->input.q = pressed;
     return;
-  case GLFW_KEY_E:
+  case Controls::MOVE_UP:
     app->input.e = pressed;
     return;
-  case GLFW_KEY_R:
+  case Controls::RELOAD_SHADERS:
     if (pressed) {
       std::cerr << "Reloading shaders" << std::endl;
       app->shader.loadShaders();
     }
     return;
-  case GLFW_KEY_UP:
+  case Controls::ROTATE_PITCH_UP:
     app->input.up = pressed;
     return;
-  case GLFW_KEY_DOWN:
+  case Controls::ROTATE_PITCH_DOWN:
     app->input.down = pressed;
     return;
-  case GLFW_KEY_LEFT:
+  case Controls::ROTATE_YAW_LEFT:
     app->input.left = pressed;
     return;
-  case GLFW_KEY_RIGHT:
+  case Controls::ROTATE_YAW_RIGHT:
     app->input.right = pressed;
     return;
   default:
