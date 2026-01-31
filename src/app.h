@@ -41,8 +41,6 @@ public:
   void run();
   void move(float deltaTime);
 
-  unsigned int projLoc;
-
   Window window;
   Shader shader;
   Camera camera;
