@@ -66,6 +66,12 @@ unsigned int Shader::compileShader(unsigned int type, const char *source) {
   return shader;
 }
 
-int Shader::addUBO(const std::string &name) {
-  return glGetUniformLocation(currentShaderProgram, name.c_str());
+int Shader::addUniform(const std::string &name) {
+  uniformLocations[name] =
+      glGetUniformLocation(currentShaderProgram, name.c_str());
+  return uniformLocations[name];
+}
+
+unsigned int Shader::getUniformLocation(const std::string &name) {
+  return uniformLocations[name];
 }

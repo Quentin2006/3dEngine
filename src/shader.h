@@ -7,7 +7,8 @@ public:
   ~Shader();
   void loadShaders();
   unsigned int getShaderProgram() { return currentShaderProgram; }
-  int addUBO(const std::string &name);
+  int addUniform(const std::string &name);
+  unsigned int getUniformLocation(const std::string &name);
 
 private:
   std::string readFile(const char *path);

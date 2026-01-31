@@ -1,5 +1,6 @@
 #include "app.h"
 #include <GLFW/glfw3.h>
+#include <chrono>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -9,8 +10,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-constexpr float MOVEMENT_SPEED = 0.05f;
-constexpr float ROTATION_SPEED = 0.7f;
+constexpr float MOVEMENT_SPEED = 15.f;
+constexpr float ROTATION_SPEED = 125.f;
+
 const std::vector<glm::vec3> cube = {
     // Back face - viewed from -Z, CCW winding
     // Normal: (0, 0, -1)
@@ -105,7 +107,6 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 
   if (!app)
     return;
-  std::cerr << "Framebuffer resized to " << width << "x" << height << std::endl;
 
   // UPDATE WIDTH
   app->window.setWidth(width);
@@ -114,7 +115,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   // UPDATE PROJECTION MATRIX
   app->camera.updateAspect(width, height);
 
-  glUniformMatrix4fv(app->projLoc, 1, GL_FALSE,
+  glUniformMatrix4fv(app->shader.getUniformLocation("projection"), 1, GL_FALSE,
                      glm::value_ptr(app->camera.getProjectionMatrix()));
 
   glViewport(0, 0, width, height);
@@ -134,7 +135,7 @@ App::App(int width, int height, std::string title)
 
   // CONFIG
   glViewport(0, 0, window.getWidth(), window.getHeight());
-  glClearColor(0.05f, 0.1f, 0.1f, 1.0f);
+  glClearColor(160 / 255.f, 217 / 255.f, 239 / 255.f, 1.f);
   glEnable(GL_DEPTH_TEST);
 
   // Face culling - skip rendering inside faces
@@ -155,16 +156,11 @@ App::App(int width, int height, std::string title)
 
 void App::run() {
   // get uniform location, now that the shader exists, we can find the ID
-  unsigned int modelLoc = shader.addUBO("model");
-  unsigned int viewLoc = shader.addUBO("view");
-  projLoc = shader.addUBO("projection");
-  unsigned int timeLoc = shader.addUBO("time");
+  shader.addUniform("model");
+  shader.addUniform("view");
+  shader.addUniform("projection");
+  shader.addUniform("time");
 
-  // NOTE: we change projection matix on window resize
-  glUniformMatrix4fv(projLoc, 1, GL_FALSE,
-                     glm::value_ptr(camera.getProjectionMatrix()));
-
-  // Test 1: Position - 5 cubes in a row at different X positions
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
       auto obj = std::make_unique<Object>();
@@ -174,25 +170,37 @@ void App::run() {
     }
   }
 
+  auto prevTime = std::chrono::steady_clock::now();
+  float totalTime;
+
   while (!window.shouldClose()) {
-    move();
+
+    auto currentTime = std::chrono::steady_clock::now();
+    auto deltaTime =
+        std::chrono::duration<float>(currentTime - prevTime).count();
+    prevTime = currentTime;
+
+    totalTime += deltaTime;
+
+    // moves camera object
+    move(deltaTime);
 
     // clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // update time
-    glUniform1f(timeLoc, (float)glfwGetTime());
+    glUniform1f(shader.getUniformLocation("time"), (float)glfwGetTime());
 
     // 1. view
-    // position of camersa
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE,
+    // position of camera
+    glUniformMatrix4fv(shader.getUniformLocation("view"), 1, GL_FALSE,
                        glm::value_ptr(camera.getViewMatrix()));
 
     // 2. model
     // what encode the scale, position, and rotation
     for (auto &obj : objs) {
       obj->updateModelMatrix();
-      glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
+      glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE,
                          glm::value_ptr(obj->getModelMatrix()));
       obj->draw();
     }
@@ -204,25 +212,25 @@ void App::run() {
 }
 
 // would like to abstract into camera class
-void App::move() {
+void App::move(float deltaTime) {
   if (input.w)
-    camera.moveForward(MOVEMENT_SPEED);
+    camera.moveForward(MOVEMENT_SPEED * deltaTime);
   if (input.s)
-    camera.moveForward(-MOVEMENT_SPEED);
+    camera.moveForward(-MOVEMENT_SPEED * deltaTime);
   if (input.a)
-    camera.moveRight(-MOVEMENT_SPEED);
+    camera.moveRight(-MOVEMENT_SPEED * deltaTime);
   if (input.d)
-    camera.moveRight(MOVEMENT_SPEED);
+    camera.moveRight(MOVEMENT_SPEED * deltaTime);
   if (input.q)
-    camera.moveUp(MOVEMENT_SPEED);
+    camera.moveUp(MOVEMENT_SPEED * deltaTime);
   if (input.e)
-    camera.moveUp(-MOVEMENT_SPEED);
+    camera.moveUp(-MOVEMENT_SPEED * deltaTime);
   if (input.up)
-    camera.rotatePitch(ROTATION_SPEED);
+    camera.rotatePitch(ROTATION_SPEED * deltaTime);
   if (input.down)
-    camera.rotatePitch(-ROTATION_SPEED);
+    camera.rotatePitch(-ROTATION_SPEED * deltaTime);
   if (input.left)
-    camera.rotateYaw(-ROTATION_SPEED);
+    camera.rotateYaw(-ROTATION_SPEED * deltaTime);
   if (input.right)
-    camera.rotateYaw(ROTATION_SPEED);
+    camera.rotateYaw(ROTATION_SPEED * deltaTime);
 }
