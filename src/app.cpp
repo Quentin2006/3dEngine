@@ -13,42 +13,57 @@
 constexpr float MOVEMENT_SPEED = 15.f;
 constexpr float ROTATION_SPEED = 125.f;
 
-const std::vector<glm::vec3> cube = {
+// Cube with texture coordinates - each face uses UVs 0-1
+const std::vector<Vertex> texturedCube = {
     // Back face - viewed from -Z, CCW winding
-    // Normal: (0, 0, -1)
-    glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(-0.5f, -0.5f, -0.5f),
-    glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-0.5f, 0.5f, -0.5f),
-    glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f),
+    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
+    {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
+    {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}},  // top left
+    {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}},  // top left
+    {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},   // top right
+    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
 
     // Front face - viewed from +Z, CCW winding
-    // Normal: (0, 0, 1)
-    glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, -0.5f, 0.5f),
-    glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f),
-    glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-0.5f, -0.5f, 0.5f),
+    {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}, // bottom left
+    {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},  // bottom right
+    {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
+    {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
+    {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},  // top left
+    {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}, // bottom left
 
     // Left face - viewed from -X, CCW winding
-    // Normal: (-1, 0, 0)
-    glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-0.5f, -0.5f, 0.5f),
-    glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-0.5f, 0.5f, 0.5f),
-    glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-0.5f, -0.5f, -0.5f),
+    {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
+    {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},  // bottom right
+    {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
+    {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
+    {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}},  // top left
+    {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
 
     // Right face - viewed from +X, CCW winding
-    // Normal: (1, 0, 0)
-    glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, -0.5f, -0.5f),
-    glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.5f, -0.5f),
-    glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, -0.5f, 0.5f),
+    {{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}},  // bottom left
+    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}}, // bottom right
+    {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // top right
+    {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // top right
+    {{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},   // top left
+    {{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}},  // bottom left
 
     // Bottom face - viewed from -Y, CCW winding
-    // Normal: (0, -1, 0)
-    glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, 0.5f),
-    glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(-0.5f, -0.5f, 0.5f),
-    glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f),
+    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
+    {{0.5f, -0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
+    {{-0.5f, -0.5f, 0.5f}, {0.0f, 1.0f}},  // top left
+    {{-0.5f, -0.5f, 0.5f}, {0.0f, 1.0f}},  // top left
+    {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
+    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
 
     // Top face - viewed from +Y, CCW winding
-    // Normal: (0, 1, 0)
-    glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-0.5f, 0.5f, 0.5f),
-    glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f),
-    glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(-0.5f, 0.5f, -0.5f)};
+    {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
+    {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},  // top left
+    {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
+    {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
+    {{0.5f, 0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
+    {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f}}  // bottom left
+};
+
 void key_callback(GLFWwindow *window, int key, int, int action, int) {
   App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
 
@@ -147,6 +162,9 @@ App::App(int width, int height, std::string title)
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  // Textures
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+
   // needed to get class instance in window callback
   glfwSetWindowUserPointer(window.getGLFWwindow(), this);
   glfwSetKeyCallback(window.getGLFWwindow(), key_callback);
@@ -160,12 +178,14 @@ void App::run() {
   shader.addUniform("view");
   shader.addUniform("projection");
   shader.addUniform("time");
+  shader.addUniform("ourTexture");
 
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
       auto obj = std::make_unique<Object>();
-      obj->loadVertices(cube);
+      obj->loadVertices(texturedCube);
       obj->setPosition({i * 2.f, -5, j * 2.f});
+      obj->loadTexture("container.jpg");
       objs.push_back(std::move(obj));
     }
   }
@@ -195,6 +215,10 @@ void App::run() {
     // position of camera
     glUniformMatrix4fv(shader.getUniformLocation("view"), 1, GL_FALSE,
                        glm::value_ptr(camera.getViewMatrix()));
+
+    // Set texture unit for all objects
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(shader.getUniformLocation("ourTexture"), 0);
 
     // 2. model
     // what encode the scale, position, and rotation
