@@ -3,6 +3,7 @@
 
 #include "buffer.h"
 #include <glm/glm.hpp>
+#include <string>
 
 class Object {
 public:
@@ -23,13 +24,15 @@ public:
   void addScale(const glm::vec3 &scale);
 
   // Load vertex data into the object's buffer
-  void loadVertices(const std::vector<glm::vec3> &vertices);
+  void loadVertices(const std::vector<Vertex> &vertices);
 
   // Update the model matrix from current transform
   void updateModelMatrix();
 
   // Bind VAO and draw this object
   void draw();
+
+  void loadTexture(const std::string &path);
 
   // Getters
   const glm::mat4 &getModelMatrix() const { return modelMatrix; }
@@ -43,6 +46,7 @@ private:
   glm::vec3 scale;       // Scale factors
   glm::mat4 modelMatrix; // Combined transform matrix
   size_t vertexCount;    // Number of vertices to draw
+  unsigned int texture;
 };
 
 #endif // OBJECT_H

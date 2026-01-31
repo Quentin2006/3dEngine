@@ -15,7 +15,7 @@ Buffer::~Buffer() {
     glDeleteVertexArrays(1, &VAO);
 }
 
-void Buffer::uploadVertices(const std::vector<glm::vec3> &vertices) {
+void Buffer::uploadVertices(const std::vector<Vertex> &vertices) {
   // Skip if no data provided
   if (vertices.empty())
     return;
@@ -25,15 +25,20 @@ void Buffer::uploadVertices(const std::vector<glm::vec3> &vertices) {
   // Bind VBO for data upload and attribute configuration
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-  // Upload vertex data to GPU buffer
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
+  // Upload interleaved vertex data to GPU buffer
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
                vertices.data(), GL_STATIC_DRAW);
 
-  // Configure attribute 0: 3 floats per vertex (position), no normalization
-  // Stride = sizeof(vec3) to handle potential padding
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void *)0);
-  // Enable the vertex attribute
+  // Configure attribute 0: position (3 floats)
+  // Offset = 0, Stride = sizeof(Vertex)
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
   glEnableVertexAttribArray(0);
+
+  // Configure attribute 1: texture coordinates (2 floats)
+  // Offset = sizeof(glm::vec3) to skip position, Stride = sizeof(Vertex)
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (void *)offsetof(Vertex, texCoord));
+  glEnableVertexAttribArray(1);
 
   // Note: We don't unbind VBO here because VAO needs to remember
   // which VBO is bound for this attribute configuration
