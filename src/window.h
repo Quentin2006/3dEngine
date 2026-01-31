@@ -7,6 +7,9 @@ public:
   int getWidth() { return width; }
   int getHeight() { return height; }
 
+  void setWidth(int width_) { width = width_; }
+  void setHeight(int height_) { height = height_; }
+
   bool shouldClose() { return glfwWindowShouldClose(window); }
 
   void swapBuffers() {

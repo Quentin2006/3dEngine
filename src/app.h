@@ -41,6 +41,8 @@ public:
   void run();
   void move();
 
+  unsigned int projLoc;
+
   Window window;
   Shader shader;
   Camera camera;
