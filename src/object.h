@@ -33,6 +33,7 @@ public:
   void draw();
 
   void loadTexture(const std::string &path);
+  void loadObj(const std::string &path);
 
   // Getters
   const glm::mat4 &getModelMatrix() const { return modelMatrix; }
@@ -47,6 +48,8 @@ private:
   glm::mat4 modelMatrix; // Combined transform matrix
   size_t vertexCount;    // Number of vertices to draw
   unsigned int texture;
+
+  std::vector<Vertex> vertices;
 };
 
 #endif // OBJECT_H

@@ -13,57 +13,6 @@
 constexpr float MOVEMENT_SPEED = 15.f;
 constexpr float ROTATION_SPEED = 125.f;
 
-// Cube with texture coordinates - each face uses UVs 0-1
-const std::vector<Vertex> texturedCube = {
-    // Back face - viewed from -Z, CCW winding
-    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
-    {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
-    {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}},  // top left
-    {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}},  // top left
-    {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},   // top right
-    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
-
-    // Front face - viewed from +Z, CCW winding
-    {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}, // bottom left
-    {{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},  // bottom right
-    {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
-    {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
-    {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},  // top left
-    {{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}}, // bottom left
-
-    // Left face - viewed from -X, CCW winding
-    {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
-    {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f}},  // bottom right
-    {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
-    {{-0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
-    {{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f}},  // top left
-    {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
-
-    // Right face - viewed from +X, CCW winding
-    {{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}},  // bottom left
-    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}}, // bottom right
-    {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // top right
-    {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f}},  // top right
-    {{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},   // top left
-    {{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f}},  // bottom left
-
-    // Bottom face - viewed from -Y, CCW winding
-    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
-    {{0.5f, -0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
-    {{-0.5f, -0.5f, 0.5f}, {0.0f, 1.0f}},  // top left
-    {{-0.5f, -0.5f, 0.5f}, {0.0f, 1.0f}},  // top left
-    {{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
-    {{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
-
-    // Top face - viewed from +Y, CCW winding
-    {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f}}, // bottom left
-    {{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f}},  // top left
-    {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
-    {{0.5f, 0.5f, 0.5f}, {1.0f, 1.0f}},   // top right
-    {{0.5f, 0.5f, -0.5f}, {1.0f, 0.0f}},  // bottom right
-    {{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f}}  // bottom left
-};
-
 void key_callback(GLFWwindow *window, int key, int, int action, int) {
   App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
 
@@ -183,9 +132,9 @@ void App::run() {
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
       auto obj = std::make_unique<Object>();
-      obj->loadVertices(texturedCube);
+      obj->loadObj("cube.obj");
       obj->setPosition({i * 2.f, -5, j * 2.f});
-      obj->loadTexture("container.jpg");
+      obj->loadTexture("cube.jpg");
       objs.push_back(std::move(obj));
     }
   }
