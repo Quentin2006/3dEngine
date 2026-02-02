@@ -40,6 +40,11 @@ void Buffer::uploadVertices(const std::vector<Vertex> &vertices) {
                         (void *)offsetof(Vertex, texCoord));
   glEnableVertexAttribArray(1);
 
+  // Configure attribute 2: normals (3 floats)
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (void *)offsetof(Vertex, normal));
+  glEnableVertexAttribArray(2);
+
   // Note: We don't unbind VBO here because VAO needs to remember
   // which VBO is bound for this attribute configuration
 }

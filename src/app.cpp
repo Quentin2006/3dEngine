@@ -46,6 +46,7 @@ void key_callback(GLFWwindow *window, int key, int, int action, int) {
     return;
   case Controls::RELOAD_SHADERS:
     if (pressed) {
+      std::cerr << "Reloading shaders" << std::endl;
       app->shader.loadShaders();
     }
     return;
@@ -168,7 +169,6 @@ void App::run() {
     // 2. model
     // what encode the scale, position, and rotation
     for (auto &obj : objs) {
-      obj->addPosition({0, 0, deltaTime * 3});
       obj->updateModelMatrix();
       glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE,
                          glm::value_ptr(obj->getModelMatrix()));
