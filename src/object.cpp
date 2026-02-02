@@ -30,11 +30,6 @@ void Object::addRotation(const glm::vec3 &rot) { rotation += rot; }
 
 void Object::addScale(const glm::vec3 &s) { scale += s; }
 
-void Object::loadVertices(const std::vector<Vertex> &vertices) {
-  buffer.uploadVertices(vertices);
-  vertexCount = vertices.size();
-}
-
 void Object::updateModelMatrix() {
   modelMatrix = glm::mat4(1.0f);
 
@@ -63,7 +58,7 @@ void Object::draw() {
   glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }
 
-void Object::loadTexture(const std::string &path) {
+void Object::setTexture(const std::string &path) {
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -81,7 +76,8 @@ void Object::loadTexture(const std::string &path) {
       stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
 
   if (data) {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+    GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
                  GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
@@ -90,15 +86,16 @@ void Object::loadTexture(const std::string &path) {
   stbi_image_free(data);
 }
 
-void Object::loadObj(const std::string &inputfile) {
+int Object::loadObj(const std::string &objFilePath) {
   tinyobj::ObjReader reader;
   tinyobj::ObjReaderConfig readerConfig;
+  // readerConfig.mtl_search_path = mtlSearchPath;
 
-  if (!reader.ParseFromFile(inputfile, readerConfig)) {
+  if (!reader.ParseFromFile(objFilePath, readerConfig)) {
     if (!reader.Error().empty()) {
       std::cerr << "TinyObjReader: " << reader.Error() << std::endl;
     }
-    return;
+    return 0;
   }
 
   if (!reader.Warning().empty()) {
@@ -154,11 +151,9 @@ void Object::loadObj(const std::string &inputfile) {
         vertices.push_back(vertex);
       }
       index_offset += fv;
-
-      // per-face material
-      // shapes[s].mesh.material_ids[f];
     }
   }
   buffer.uploadVertices(vertices);
   vertexCount = vertices.size();
+  return vertexCount;
 }

@@ -129,21 +129,17 @@ void App::run() {
   shader.addUniform("time");
   shader.addUniform("ourTexture");
 
-  for (int i = 0; i < 10; i++) {
-    for (int j = 0; j < 10; j++) {
-      auto obj = std::make_unique<Object>();
-      obj->loadObj("cube.obj");
-      obj->setPosition({i * 2.f, -5, j * 2.f});
-      obj->loadTexture("cube.jpg");
-      objs.push_back(std::move(obj));
-    }
-  }
+  auto obj = std::make_unique<Object>();
+  std::string OBJ_PATH = "assets/Car/Car.obj";
+  std::string TEXTURE_PATH = "assets/Car/Car.png";
+  std::cerr << "Loaded " << obj->loadObj(OBJ_PATH) << "verts" << std::endl;
+  obj->setTexture(TEXTURE_PATH);
+  objs.push_back(std::move(obj));
 
   auto prevTime = std::chrono::steady_clock::now();
   float totalTime;
 
   while (!window.shouldClose()) {
-
     auto currentTime = std::chrono::steady_clock::now();
     auto deltaTime =
         std::chrono::duration<float>(currentTime - prevTime).count();
@@ -172,6 +168,7 @@ void App::run() {
     // 2. model
     // what encode the scale, position, and rotation
     for (auto &obj : objs) {
+      obj->addPosition({0, 0, deltaTime * 3});
       obj->updateModelMatrix();
       glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE,
                          glm::value_ptr(obj->getModelMatrix()));

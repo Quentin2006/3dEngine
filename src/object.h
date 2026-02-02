@@ -23,17 +23,14 @@ public:
   void addRotation(const glm::vec3 &rot);
   void addScale(const glm::vec3 &scale);
 
-  // Load vertex data into the object's buffer
-  void loadVertices(const std::vector<Vertex> &vertices);
-
   // Update the model matrix from current transform
   void updateModelMatrix();
 
   // Bind VAO and draw this object
   void draw();
 
-  void loadTexture(const std::string &path);
-  void loadObj(const std::string &path);
+  void setTexture(const std::string &path);
+  int loadObj(const std::string &objFilePath);
 
   // Getters
   const glm::mat4 &getModelMatrix() const { return modelMatrix; }
