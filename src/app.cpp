@@ -1,6 +1,7 @@
 #include "app.h"
 #include <GLFW/glfw3.h>
 #include <chrono>
+#include <glm/ext/vector_float3.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -100,7 +101,7 @@ App::App(int width, int height, std::string title)
 
   // CONFIG
   glViewport(0, 0, window.getWidth(), window.getHeight());
-  glClearColor(160 / 255.f, 217 / 255.f, 239 / 255.f, 1.f);
+  // glClearColor(160 / 255.f, 217 / 255.f, 239 / 255.f, 1.f);
   glEnable(GL_DEPTH_TEST);
 
   // Face culling - skip rendering inside faces
@@ -127,15 +128,22 @@ void App::run() {
   shader.addUniform("model");
   shader.addUniform("view");
   shader.addUniform("projection");
-  shader.addUniform("time");
   shader.addUniform("ourTexture");
+  shader.addUniform("lightPos");
+  shader.addUniform("lightColor");
 
-  auto obj = std::make_unique<Object>();
   std::string PATH = "assets/3d-cubes/";
   std::string OBJ_NAME = "cube-tex.obj";
-  std::cerr << "Loaded " << obj->loadObj(PATH, OBJ_NAME) << "verts"
+
+  auto cube = std::make_shared<Object>();
+  std::cerr << "Loaded " << cube->loadObj(PATH, OBJ_NAME) << " verts"
             << std::endl;
-  objs.push_back(std::move(obj));
+  objs.push_back(cube);
+
+  auto light = std::make_shared<Object>();
+  std::cerr << "Loaded " << light->loadObj(PATH, OBJ_NAME) << " verts"
+            << std::endl;
+  objs.push_back(light);
 
   auto prevTime = std::chrono::steady_clock::now();
   float totalTime;
@@ -148,32 +156,48 @@ void App::run() {
 
     totalTime += deltaTime;
 
+    // Set texture unit for all objects
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(shader.getUniformLocation("ourTexture"), 0);
+
+    glm::vec3 lightPos =
+        glm::mix(glm::vec3(10.0, 0, 10.0), glm::vec3(-10.0, 0.0, -10.0),
+                 glm::sin(totalTime));
+
+    // update pos
+    glUniform3f(shader.getUniformLocation("lightPos"), lightPos.x, lightPos.y,
+                lightPos.z);
+
+    glm::vec3 lightColor = {1, 1, 1};
+
+    // update light color
+    glUniform3f(shader.getUniformLocation("lightColor"), lightColor.r,
+                lightColor.g, lightColor.b);
+
     // moves camera object
     move(deltaTime);
 
     // clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // update time
-    glUniform1f(shader.getUniformLocation("time"), (float)glfwGetTime());
-
     // 1. view
     // position of camera
     glUniformMatrix4fv(shader.getUniformLocation("view"), 1, GL_FALSE,
                        glm::value_ptr(camera.getViewMatrix()));
 
-    // Set texture unit for all objects
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(shader.getUniformLocation("ourTexture"), 0);
-
     // 2. model
     // what encode the scale, position, and rotation
-    for (auto &obj : objs) {
-      obj->updateModelMatrix();
-      glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE,
-                         glm::value_ptr(obj->getModelMatrix()));
-      obj->draw();
-    }
+    cube->updateModelMatrix();
+    glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE,
+                       glm::value_ptr(cube->getModelMatrix()));
+    cube->draw();
+
+    // NOTE: LIGHT
+    light->setPosition(lightPos);
+    light->updateModelMatrix();
+    glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE,
+                       glm::value_ptr(light->getModelMatrix()));
+    light->draw();
 
     window.swapBuffers();
   }

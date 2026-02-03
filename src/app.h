@@ -44,7 +44,7 @@ public:
   Window window;
   Shader shader;
   Camera camera;
-  std::vector<std::unique_ptr<Object>> objs;
+  std::vector<std::shared_ptr<Object>> objs;
   InputState input;
 
 private:
