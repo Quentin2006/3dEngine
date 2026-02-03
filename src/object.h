@@ -29,8 +29,9 @@ public:
   // Bind VAO and draw this object
   void draw();
 
-  void setTexture(const std::string &path);
-  int loadObj(const std::string &objFilePath);
+  // We expect the assetsPath the be the dir where all the assets are,
+  //  and the objName is the name of the obj file
+  int loadObj(const std::string &assetsPath, const std::string &objName);
 
   // Getters
   const glm::mat4 &getModelMatrix() const { return modelMatrix; }
@@ -38,6 +39,8 @@ public:
   size_t getVertexCount() const { return vertexCount; }
 
 private:
+  void setTexture(const std::string &path);
+
   Buffer buffer;         // Holds VAO/VBO with geometry
   glm::vec3 position;    // World position
   glm::vec3 rotation;    // Rotation in degrees (Euler angles)

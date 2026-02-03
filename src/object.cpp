@@ -77,8 +77,10 @@ void Object::setTexture(const std::string &path) {
 
   if (data) {
     GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
                  GL_UNSIGNED_BYTE, data);
+
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
     std::cerr << "Failed to load texture: " << path << std::endl;
@@ -86,12 +88,11 @@ void Object::setTexture(const std::string &path) {
   stbi_image_free(data);
 }
 
-int Object::loadObj(const std::string &objFilePath) {
+int Object::loadObj(const std::string &filePath, const std::string &objName) {
   tinyobj::ObjReader reader;
   tinyobj::ObjReaderConfig readerConfig;
-  // readerConfig.mtl_search_path = mtlSearchPath;
 
-  if (!reader.ParseFromFile(objFilePath, readerConfig)) {
+  if (!reader.ParseFromFile(filePath + objName, readerConfig)) {
     if (!reader.Error().empty()) {
       std::cerr << "TinyObjReader: " << reader.Error() << std::endl;
     }
@@ -104,15 +105,23 @@ int Object::loadObj(const std::string &objFilePath) {
 
   auto &attrib = reader.GetAttrib();
   auto &shapes = reader.GetShapes();
-  // auto &materials = reader.GetMaterials();
+  auto &materials = reader.GetMaterials();
 
   // Loop over shapes
   for (size_t s = 0; s < shapes.size(); s++) {
     // Loop over faces(polygon)
     size_t index_offset = 0;
     for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-      size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
+      int material_id = shapes[s].mesh.material_ids[f];
+
+      if (material_id >= 0 && material_id < materials.size()) {
+        std::string texturePath =
+            filePath + materials[material_id].diffuse_texname;
+        setTexture(texturePath);
+      }
+
+      size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
       // Loop over vertices in the face.
       for (size_t v = 0; v < fv; v++) {
         Vertex vertex;
@@ -134,26 +143,28 @@ int Object::loadObj(const std::string &objFilePath) {
 
         // Check if `texcoord_index` is zero or positive. negative = no texcoord
         // data
+        // we also need to flip the y axis
         if (idx.texcoord_index >= 0) {
           tinyobj::real_t tx =
               attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
           tinyobj::real_t ty =
-              attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+              1 - attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
           vertex.texCoord = glm::vec2(tx, ty);
         }
 
         // Optional: vertex colors
-        tinyobj::real_t red = attrib.colors[3 * size_t(idx.vertex_index) + 0];
-        tinyobj::real_t green = attrib.colors[3 * size_t(idx.vertex_index) + 1];
-        tinyobj::real_t blue = attrib.colors[3 * size_t(idx.vertex_index) + 2];
-        // vertex.color = glm::vec3(red, green, blue);
-        std::cerr << red << green << blue << std::endl;
+        // tinyobj::real_t red = attrib.colors[3 * size_t(idx.vertex_index) +
+        // 0]; tinyobj::real_t green = attrib.colors[3 *
+        // size_t(idx.vertex_index) + 1]; tinyobj::real_t blue = attrib.colors[3
+        // * size_t(idx.vertex_index) + 2]; vertex.color = glm::vec3(red, green,
+        // blue);
 
         vertices.push_back(vertex);
       }
       index_offset += fv;
     }
   }
+
   buffer.uploadVertices(vertices);
   vertexCount = vertices.size();
   return vertexCount;
