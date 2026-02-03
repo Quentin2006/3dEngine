@@ -132,17 +132,26 @@ void App::run() {
   shader.addUniform("lightPos");
   shader.addUniform("lightColor");
 
-  std::string PATH = "assets/3d-cubes/";
-  std::string OBJ_NAME = "cube-tex.obj";
+  std::string CUBE_PATH = "assets/3d-cubes/";
+  std::string HUMAN_PATH = "assets/human/";
+  std::string CAR_PATH = "assets/Car/";
 
-  auto cube = std::make_shared<Object>();
-  std::cerr << "Loaded " << cube->loadObj(PATH, OBJ_NAME) << " verts"
+  auto human = std::make_shared<Object>();
+  std::cerr << "Loaded " << human->loadObj(HUMAN_PATH, "FinalBaseMesh.obj")
+            << " verts" << std::endl;
+  human->setScale({.25, .25, .25});
+  objs.push_back(human);
+
+  auto car = std::make_shared<Object>();
+  std::cerr << "Loaded " << car->loadObj(CAR_PATH, "Car.obj") << " verts"
             << std::endl;
-  objs.push_back(cube);
+  car->setPosition({10, 0, 10});
+  car->setScale({.1, .1, .1});
+  objs.push_back(car);
 
   auto light = std::make_shared<Object>();
-  std::cerr << "Loaded " << light->loadObj(PATH, OBJ_NAME) << " verts"
-            << std::endl;
+  std::cerr << "Loaded " << light->loadObj(CUBE_PATH, "cube-tex.obj")
+            << " verts" << std::endl;
   objs.push_back(light);
 
   auto prevTime = std::chrono::steady_clock::now();
@@ -168,7 +177,7 @@ void App::run() {
     glUniform3f(shader.getUniformLocation("lightPos"), lightPos.x, lightPos.y,
                 lightPos.z);
 
-    glm::vec3 lightColor = {1, 1, 1};
+    glm::vec3 lightColor = {0, 0, 1};
 
     // update light color
     glUniform3f(shader.getUniformLocation("lightColor"), lightColor.r,
@@ -187,10 +196,18 @@ void App::run() {
 
     // 2. model
     // what encode the scale, position, and rotation
-    cube->updateModelMatrix();
+
+    // NOTE: HUMAN
+    human->updateModelMatrix();
     glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE,
-                       glm::value_ptr(cube->getModelMatrix()));
-    cube->draw();
+                       glm::value_ptr(human->getModelMatrix()));
+    human->draw();
+
+    // NOTE: CAR
+    car->updateModelMatrix();
+    glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE,
+                       glm::value_ptr(car->getModelMatrix()));
+    car->draw();
 
     // NOTE: LIGHT
     light->setPosition(lightPos);

@@ -140,6 +140,32 @@ int Object::loadObj(const std::string &filePath, const std::string &objName) {
           tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
           vertex.normal = glm::vec3(nx, ny, nz);
         }
+        // we need to calculate normals
+        else {
+          // Calculate face normal using cross product
+          // Get the three vertices of this face (assuming triangles)
+          if (fv >= 3) {
+            tinyobj::index_t idx0 = shapes[s].mesh.indices[index_offset + 0];
+            tinyobj::index_t idx1 = shapes[s].mesh.indices[index_offset + 1];
+            tinyobj::index_t idx2 = shapes[s].mesh.indices[index_offset + 2];
+
+            glm::vec3 v0(attrib.vertices[3 * idx0.vertex_index + 0],
+                         attrib.vertices[3 * idx0.vertex_index + 1],
+                         attrib.vertices[3 * idx0.vertex_index + 2]);
+            glm::vec3 v1(attrib.vertices[3 * idx1.vertex_index + 0],
+                         attrib.vertices[3 * idx1.vertex_index + 1],
+                         attrib.vertices[3 * idx1.vertex_index + 2]);
+            glm::vec3 v2(attrib.vertices[3 * idx2.vertex_index + 0],
+                         attrib.vertices[3 * idx2.vertex_index + 1],
+                         attrib.vertices[3 * idx2.vertex_index + 2]);
+
+            glm::vec3 edge1 = v1 - v0;
+            glm::vec3 edge2 = v2 - v0;
+            vertex.normal = glm::normalize(glm::cross(edge1, edge2));
+          } else {
+            vertex.normal = glm::vec3(0, 0, 1);
+          }
+        }
 
         // Check if `texcoord_index` is zero or positive. negative = no texcoord
         // data
