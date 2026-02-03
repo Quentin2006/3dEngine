@@ -139,9 +139,15 @@ int Object::loadObj(const std::string &objFilePath) {
               attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
           tinyobj::real_t ty =
               attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
-          // Flip V coordinate: OBJ uses bottom-left origin, OpenGL uses top-left
-          vertex.texCoord = glm::vec2(tx, 1.0f - ty);
+          vertex.texCoord = glm::vec2(tx, ty);
         }
+
+        // Optional: vertex colors
+        tinyobj::real_t red = attrib.colors[3 * size_t(idx.vertex_index) + 0];
+        tinyobj::real_t green = attrib.colors[3 * size_t(idx.vertex_index) + 1];
+        tinyobj::real_t blue = attrib.colors[3 * size_t(idx.vertex_index) + 2];
+        // vertex.color = glm::vec3(red, green, blue);
+        std::cerr << red << green << blue << std::endl;
 
         vertices.push_back(vertex);
       }

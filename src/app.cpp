@@ -131,10 +131,10 @@ void App::run() {
   shader.addUniform("ourTexture");
 
   auto obj = std::make_unique<Object>();
-  std::string OBJ_PATH = "assets/Car/Car.obj";
+  std::string OBJ_PATH = "assets/911_scene/911_scene.obj";
   std::string TEXTURE_PATH = "assets/Car/Car.png";
   std::cerr << "Loaded " << obj->loadObj(OBJ_PATH) << "verts" << std::endl;
-  obj->setTexture(TEXTURE_PATH);
+  // obj->setTexture(TEXTURE_PATH);
   objs.push_back(std::move(obj));
 
   auto prevTime = std::chrono::steady_clock::now();
