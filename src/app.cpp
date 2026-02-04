@@ -135,23 +135,23 @@ void App::run() {
   std::string CUBE_PATH = "assets/3d-cubes/";
   std::string HUMAN_PATH = "assets/human/";
   std::string CAR_PATH = "assets/Car/";
+  std::string WOLF_PATH = "assets/wolf/";
 
   auto human = std::make_shared<Object>();
-  std::cerr << "Loaded " << human->loadObj(HUMAN_PATH, "FinalBaseMesh.obj")
-            << " verts" << std::endl;
+  std::cerr << human->loadObj(HUMAN_PATH, "FinalBaseMesh.obj") << " verts"
+            << std::endl;
   human->setScale({.25, .25, .25});
   objs.push_back(human);
 
   auto car = std::make_shared<Object>();
-  std::cerr << "Loaded " << car->loadObj(CAR_PATH, "Car.obj") << " verts"
-            << std::endl;
+  std::cerr << car->loadObj(CAR_PATH, "Car.obj") << " verts" << std::endl;
   car->setPosition({10, 0, 10});
   car->setScale({.1, .1, .1});
   objs.push_back(car);
 
   auto light = std::make_shared<Object>();
-  std::cerr << "Loaded " << light->loadObj(CUBE_PATH, "cube-tex.obj")
-            << " verts" << std::endl;
+  std::cerr << light->loadObj(CUBE_PATH, "cube-tex.obj") << " verts"
+            << std::endl;
   objs.push_back(light);
 
   auto prevTime = std::chrono::steady_clock::now();

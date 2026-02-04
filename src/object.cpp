@@ -115,7 +115,7 @@ int Object::loadObj(const std::string &filePath, const std::string &objName) {
 
       int material_id = shapes[s].mesh.material_ids[f];
 
-      if (material_id >= 0 && material_id < materials.size()) {
+      if (material_id >= 0) {
         std::string texturePath =
             filePath + materials[material_id].diffuse_texname;
         setTexture(texturePath);
@@ -167,9 +167,8 @@ int Object::loadObj(const std::string &filePath, const std::string &objName) {
           }
         }
 
-        // Check if `texcoord_index` is zero or positive. negative = no texcoord
-        // data
-        // we also need to flip the y axis
+        // Check if `texcoord_index` is zero or positive. negative = no
+        // texcoord data we also need to flip the y axis
         if (idx.texcoord_index >= 0) {
           tinyobj::real_t tx =
               attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
@@ -177,13 +176,6 @@ int Object::loadObj(const std::string &filePath, const std::string &objName) {
               1 - attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
           vertex.texCoord = glm::vec2(tx, ty);
         }
-
-        // Optional: vertex colors
-        // tinyobj::real_t red = attrib.colors[3 * size_t(idx.vertex_index) +
-        // 0]; tinyobj::real_t green = attrib.colors[3 *
-        // size_t(idx.vertex_index) + 1]; tinyobj::real_t blue = attrib.colors[3
-        // * size_t(idx.vertex_index) + 2]; vertex.color = glm::vec3(red, green,
-        // blue);
 
         vertices.push_back(vertex);
       }
