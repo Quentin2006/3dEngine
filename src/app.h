@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../include/glad/glad.h"
 #include "camera.h"
 #include "object.h"

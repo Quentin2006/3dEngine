@@ -101,7 +101,7 @@ App::App(int width, int height, std::string title)
 
   // CONFIG
   glViewport(0, 0, window.getWidth(), window.getHeight());
-  // glClearColor(160 / 255.f, 217 / 255.f, 239 / 255.f, 1.f);
+  glClearColor(160 / 255.f, 217 / 255.f, 239 / 255.f, 1.f);
   glEnable(GL_DEPTH_TEST);
 
   // Face culling - skip rendering inside faces
@@ -138,19 +138,19 @@ void App::run() {
   std::string WOLF_PATH = "assets/wolf/";
 
   auto human = std::make_shared<Object>();
-  std::cerr << human->loadObj(HUMAN_PATH, "FinalBaseMesh.obj") << " verts"
+  std::cerr << human->loadMesh(HUMAN_PATH, "FinalBaseMesh.obj") << " verts"
             << std::endl;
   human->setScale({.25, .25, .25});
   objs.push_back(human);
 
   auto car = std::make_shared<Object>();
-  std::cerr << car->loadObj(CAR_PATH, "Car.obj") << " verts" << std::endl;
+  std::cerr << car->loadMesh(CAR_PATH, "Car.obj") << " verts" << std::endl;
   car->setPosition({10, 0, 10});
   car->setScale({.1, .1, .1});
   objs.push_back(car);
 
   auto light = std::make_shared<Object>();
-  std::cerr << light->loadObj(CUBE_PATH, "cube-tex.obj") << " verts"
+  std::cerr << light->loadMesh(CUBE_PATH, "cube-tex.obj") << " verts"
             << std::endl;
   objs.push_back(light);
 
@@ -177,7 +177,7 @@ void App::run() {
     glUniform3f(shader.getUniformLocation("lightPos"), lightPos.x, lightPos.y,
                 lightPos.z);
 
-    glm::vec3 lightColor = {0, 0, 1};
+    glm::vec3 lightColor = {1, 1, 1};
 
     // update light color
     glUniform3f(shader.getUniformLocation("lightColor"), lightColor.r,

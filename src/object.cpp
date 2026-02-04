@@ -3,20 +3,12 @@
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/quaternion_transform.hpp>
-#include <iostream>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "../include/stb/stb_image.h"
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "../include/tol/tiny_obj_loader.h"
-
 Object::Object()
-    : buffer(), position(0, 0, 0), rotation(0, 0, 0), scale(1, 1, 1),
-      modelMatrix(1), vertexCount(0) {}
+    : position(0, 0, 0), rotation(0, 0, 0), scale(1, 1, 1), modelMatrix(1) {}
 
 void Object::setPosition(const glm::vec3 &pos) { position = pos; }
 
@@ -43,147 +35,22 @@ void Object::updateModelMatrix() {
   modelMatrix =
       glm::rotate(modelMatrix, glm::radians(rotation.z), glm::vec3(0, 0, 1));
 
-  // std::cerr << glm::to_string(scale) << std::endl;
   // Apply scale
   modelMatrix = glm::scale(modelMatrix, scale);
 }
 
 void Object::draw() {
-  // Bind VAO and draw the object
-  glBindVertexArray(buffer.getVAO());
-
-  glBindTexture(GL_TEXTURE_2D, texture);
-
-  // Draw the geometry
-  glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+  if (mesh) {
+    mesh->draw();
+  }
 }
 
-void Object::setTexture(const std::string &path) {
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+void Object::setMesh(std::shared_ptr<Mesh> m) { mesh = m; }
 
-  // set the texture wrapping/filtering options (on the currently bound texture
-  // object)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                  GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+std::shared_ptr<Mesh> Object::getMesh() const { return mesh; }
 
-  // load and generate the texture
-  int width, height, nrChannels;
-  unsigned char *data =
-      stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
-
-  if (data) {
-    GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
-
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cerr << "Failed to load texture: " << path << std::endl;
-  }
-  stbi_image_free(data);
-}
-
-int Object::loadObj(const std::string &filePath, const std::string &objName) {
-  tinyobj::ObjReader reader;
-  tinyobj::ObjReaderConfig readerConfig;
-
-  if (!reader.ParseFromFile(filePath + objName, readerConfig)) {
-    if (!reader.Error().empty()) {
-      std::cerr << "TinyObjReader: " << reader.Error() << std::endl;
-    }
-    return 0;
-  }
-
-  if (!reader.Warning().empty()) {
-    std::cout << "TinyObjReader: " << reader.Warning();
-  }
-
-  auto &attrib = reader.GetAttrib();
-  auto &shapes = reader.GetShapes();
-  auto &materials = reader.GetMaterials();
-
-  // Loop over shapes
-  for (size_t s = 0; s < shapes.size(); s++) {
-    // Loop over faces(polygon)
-    size_t index_offset = 0;
-    for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-
-      int material_id = shapes[s].mesh.material_ids[f];
-
-      if (material_id >= 0) {
-        std::string texturePath =
-            filePath + materials[material_id].diffuse_texname;
-        setTexture(texturePath);
-      }
-
-      size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
-      // Loop over vertices in the face.
-      for (size_t v = 0; v < fv; v++) {
-        Vertex vertex;
-        // access to vertex
-        tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-        tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-        tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-        tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
-        vertex.position = glm::vec3(vx, vy, vz);
-
-        // Check if `normal_index` is zero or positive. negative = no normal
-        // data
-        if (idx.normal_index >= 0) {
-          tinyobj::real_t nx = attrib.normals[3 * size_t(idx.normal_index) + 0];
-          tinyobj::real_t ny = attrib.normals[3 * size_t(idx.normal_index) + 1];
-          tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
-          vertex.normal = glm::vec3(nx, ny, nz);
-        }
-        // we need to calculate normals
-        else {
-          // Calculate face normal using cross product
-          // Get the three vertices of this face (assuming triangles)
-          if (fv >= 3) {
-            tinyobj::index_t idx0 = shapes[s].mesh.indices[index_offset + 0];
-            tinyobj::index_t idx1 = shapes[s].mesh.indices[index_offset + 1];
-            tinyobj::index_t idx2 = shapes[s].mesh.indices[index_offset + 2];
-
-            glm::vec3 v0(attrib.vertices[3 * idx0.vertex_index + 0],
-                         attrib.vertices[3 * idx0.vertex_index + 1],
-                         attrib.vertices[3 * idx0.vertex_index + 2]);
-            glm::vec3 v1(attrib.vertices[3 * idx1.vertex_index + 0],
-                         attrib.vertices[3 * idx1.vertex_index + 1],
-                         attrib.vertices[3 * idx1.vertex_index + 2]);
-            glm::vec3 v2(attrib.vertices[3 * idx2.vertex_index + 0],
-                         attrib.vertices[3 * idx2.vertex_index + 1],
-                         attrib.vertices[3 * idx2.vertex_index + 2]);
-
-            glm::vec3 edge1 = v1 - v0;
-            glm::vec3 edge2 = v2 - v0;
-            vertex.normal = glm::normalize(glm::cross(edge1, edge2));
-          } else {
-            vertex.normal = glm::vec3(0, 0, 1);
-          }
-        }
-
-        // Check if `texcoord_index` is zero or positive. negative = no
-        // texcoord data we also need to flip the y axis
-        if (idx.texcoord_index >= 0) {
-          tinyobj::real_t tx =
-              attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
-          tinyobj::real_t ty =
-              1 - attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
-          vertex.texCoord = glm::vec2(tx, ty);
-        }
-
-        vertices.push_back(vertex);
-      }
-      index_offset += fv;
-    }
-  }
-
-  buffer.uploadVertices(vertices);
-  vertexCount = vertices.size();
-  return vertexCount;
+int Object::loadMesh(const std::string &assetsPath,
+                     const std::string &objName) {
+  mesh = std::make_shared<Mesh>();
+  return mesh->loadObj(assetsPath, objName);
 }

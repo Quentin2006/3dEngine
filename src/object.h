@@ -1,24 +1,23 @@
-#ifndef OBJECT_H
-#define OBJECT_H
+#pragma once
 
-#include "buffer.h"
+#include "mesh.h"
 #include <glm/glm.hpp>
-#include <string>
+#include <memory>
 
 class Object {
 public:
   Object();
 
-  // Prevent copying (Buffer is immobile)
+  // Prevent copying
   Object(const Object &) = delete;
   Object &operator=(const Object &) = delete;
 
-  // Set transform
+  // Set transform - same API as before
   void setPosition(const glm::vec3 &pos);
   void setRotation(const glm::vec3 &rot);
   void setScale(const glm::vec3 &scale);
 
-  // Add to transform
+  // Add to transform - same API as before
   void addPosition(const glm::vec3 &pos);
   void addRotation(const glm::vec3 &rot);
   void addScale(const glm::vec3 &scale);
@@ -29,27 +28,25 @@ public:
   // Bind VAO and draw this object
   void draw();
 
-  // We expect the assetsPath the be the dir where all the assets are,
-  //  and the objName is the name of the obj file
-  int loadObj(const std::string &assetsPath, const std::string &objName);
+  // Convenience - loads mesh and assigns it (creates new mesh)
+  int loadMesh(const std::string &assetsPath, const std::string &objName);
 
-  // Getters
+  // Component management
+  void setMesh(std::shared_ptr<Mesh> mesh);
+  std::shared_ptr<Mesh> getMesh() const;
+
+  // Getters - same API as before
   const glm::mat4 &getModelMatrix() const { return modelMatrix; }
-  unsigned int getVAO() { return buffer.getVAO(); }
-  size_t getVertexCount() const { return vertexCount; }
+  unsigned int getVAO();
+  size_t getVertexCount() const;
 
 private:
-  void setTexture(const std::string &path);
+  // Transform data
+  glm::vec3 position;
+  glm::vec3 rotation;
+  glm::vec3 scale;
+  glm::mat4 modelMatrix;
 
-  Buffer buffer;         // Holds VAO/VBO with geometry
-  glm::vec3 position;    // World position
-  glm::vec3 rotation;    // Rotation in degrees (Euler angles)
-  glm::vec3 scale;       // Scale factors
-  glm::mat4 modelMatrix; // Combined transform matrix
-  size_t vertexCount;    // Number of vertices to draw
-  unsigned int texture;
-
-  std::vector<Vertex> vertices;
+  // Components
+  std::shared_ptr<Mesh> mesh;
 };
-
-#endif // OBJECT_H
