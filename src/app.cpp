@@ -38,14 +38,9 @@ App::App(int width, int height, const std::string &title)
   glCullFace(GL_BACK);
   glFrontFace(GL_CCW);
 
-  // Setup window user pointer for callbacks
+  // needed to get class instance in window callback
   glfwSetWindowUserPointer(window.getGLFWwindow(), this);
-
-  // Setup InputManager
-  inputManager.initializeDefaults();
-
-  // Setup callbacks
-  glfwSetKeyCallback(window.getGLFWwindow(), App::keyCallback);
+  glfwSetKeyCallback(window.getGLFWwindow(), key_callback);
   glfwSetFramebufferSizeCallback(window.getGLFWwindow(),
                                  framebuffer_size_callback);
 }
@@ -144,9 +139,6 @@ void App::run() {
               shader.getUniformLocation("lightColor"));
 
     window.swapBuffers();
-
-    // Reset input pressed states for next frame
-    inputManager.endFrame();
   }
 
   glfwTerminate();
@@ -154,37 +146,24 @@ void App::run() {
 
 // would like to abstract into camera class
 void App::moveCamera(float deltaTime) {
-  if (inputManager.isActionActive(InputAction::MOVE_FORWARD))
+  if (input.w)
     camera.moveForward(MOVEMENT_SPEED * deltaTime);
-  if (inputManager.isActionActive(InputAction::MOVE_BACKWARD))
+  if (input.s)
     camera.moveForward(-MOVEMENT_SPEED * deltaTime);
-  if (inputManager.isActionActive(InputAction::MOVE_LEFT))
+  if (input.a)
     camera.moveRight(-MOVEMENT_SPEED * deltaTime);
-  if (inputManager.isActionActive(InputAction::MOVE_RIGHT))
+  if (input.d)
     camera.moveRight(MOVEMENT_SPEED * deltaTime);
-  if (inputManager.isActionActive(InputAction::MOVE_UP))
-    camera.moveUp(-MOVEMENT_SPEED * deltaTime);
-  if (inputManager.isActionActive(InputAction::MOVE_DOWN))
+  if (input.q)
     camera.moveUp(MOVEMENT_SPEED * deltaTime);
-  if (inputManager.isActionActive(InputAction::ROTATE_PITCH_UP))
+  if (input.e)
+    camera.moveUp(-MOVEMENT_SPEED * deltaTime);
+  if (input.up)
     camera.rotatePitch(ROTATION_SPEED * deltaTime);
-  if (inputManager.isActionActive(InputAction::ROTATE_PITCH_DOWN))
+  if (input.down)
     camera.rotatePitch(-ROTATION_SPEED * deltaTime);
-  if (inputManager.isActionActive(InputAction::ROTATE_YAW_LEFT))
+  if (input.left)
     camera.rotateYaw(-ROTATION_SPEED * deltaTime);
-  if (inputManager.isActionActive(InputAction::ROTATE_YAW_RIGHT))
+  if (input.right)
     camera.rotateYaw(ROTATION_SPEED * deltaTime);
-  if (inputManager.wasActionPressed(InputAction::RELOAD_SHADERS)) {
-    shader.loadShaders();
-  }
-}
-
-void App::keyCallback(GLFWwindow *window, int key, int scancode, int action,
-                      int mods) {
-  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
-
-  if (!app)
-    return;
-
-  app->inputManager.processKeyEvent(key, action);
 }
