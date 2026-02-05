@@ -1,4 +1,5 @@
 #include "window.h"
+#include <GLFW/glfw3.h>
 #include <iostream>
 
 extern "C" int gladLoadGLLoader(void *(*proc)(const char *));
@@ -19,6 +20,7 @@ Window::Window(int width, int height, std::string title)
     glfwTerminate();
   } else {
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
     if (!gladLoadGLLoader((void *(*)(const char *))glfwGetProcAddress)) {
       std::cerr << "Failed to initialize GLAD" << std::endl;
       glfwTerminate();

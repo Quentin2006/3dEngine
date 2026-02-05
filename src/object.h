@@ -1,52 +1,50 @@
 #pragma once
 
+#include "ecs/registry.h"
 #include "mesh.h"
 #include <glm/glm.hpp>
 #include <memory>
 
+extern Registry g_registry;
+
 class Object {
 public:
-  Object();
+    Object();
+    ~Object() = default;
 
-  // Prevent copying
-  Object(const Object &) = delete;
-  Object &operator=(const Object &) = delete;
+    Object(const Object&) = delete;
+    Object& operator=(const Object&) = delete;
 
-  // Set transform - same API as before
-  void setPosition(const glm::vec3 &pos);
-  void setRotation(const glm::vec3 &rot);
-  void setScale(const glm::vec3 &scale);
+    Object(Object&&) = default;
+    Object& operator=(Object&&) = default;
 
-  // Add to transform - same API as before
-  void addPosition(const glm::vec3 &pos);
-  void addRotation(const glm::vec3 &rot);
-  void addScale(const glm::vec3 &scale);
+    void setPosition(const glm::vec3& pos);
+    void setRotation(const glm::vec3& rot);
+    void setScale(const glm::vec3& scale);
 
-  // Update the model matrix from current transform
-  void updateModelMatrix();
+    void addPosition(const glm::vec3& pos);
+    void addRotation(const glm::vec3& rot);
+    void addScale(const glm::vec3& scale);
 
-  // Bind VAO and draw this object
-  void draw();
+    void updateModelMatrix();
 
-  // Convenience - loads mesh and assigns it (creates new mesh)
-  int loadMesh(const std::string &assetsPath, const std::string &objName);
+    void draw();
+    void update(unsigned int uniformLocation);
 
-  // Component management
-  void setMesh(std::shared_ptr<Mesh> mesh);
-  std::shared_ptr<Mesh> getMesh() const;
+    int loadMesh(const std::string& assetsPath, const std::string& objName);
 
-  // Getters - same API as before
-  const glm::mat4 &getModelMatrix() const { return modelMatrix; }
-  unsigned int getVAO();
-  size_t getVertexCount() const;
+    void setMesh(std::shared_ptr<Mesh> mesh);
+    std::shared_ptr<Mesh> getMesh() const;
+
+    const glm::mat4& getModelMatrix() const;
+    unsigned int getVAO();
+    const glm::vec3& getPosition() const;
+    size_t getVertexCount() const;
+
+    void makeLight(const glm::vec3& color = glm::vec3(1, 1, 1));
+    bool isLight() const;
+    glm::vec3 getLightColor() const;
 
 private:
-  // Transform data
-  glm::vec3 position;
-  glm::vec3 rotation;
-  glm::vec3 scale;
-  glm::mat4 modelMatrix;
-
-  // Components
-  std::shared_ptr<Mesh> mesh;
+    int entityId;
 };
