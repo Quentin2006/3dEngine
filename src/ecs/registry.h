@@ -9,11 +9,15 @@ public:
     transforms.push_back({});
     meshes.push_back({});
     lights.push_back({});
+    sineAnimators.push_back({});
     return id;
   }
 
   Transform &getTransform(int entity) { return transforms[entity]; }
   MeshComp &getMesh(int entity) { return meshes[entity]; }
+  std::optional<SineAnimator> &getSineAnimator(int entity) {
+    return sineAnimators[entity];
+  }
   std::optional<Light> &getLight(int entity) { return lights[entity]; }
 
   size_t entityCount() const { return transforms.size(); }
@@ -26,4 +30,5 @@ private:
   std::vector<Transform> transforms;
   std::vector<MeshComp> meshes;
   std::vector<std::optional<Light>> lights;
+  std::vector<std::optional<SineAnimator>> sineAnimators;
 };

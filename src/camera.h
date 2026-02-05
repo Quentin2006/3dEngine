@@ -53,11 +53,12 @@ public:
                                   (float)width / (float)height, zNear, zFar);
   }
 
-  glm::mat4 getViewMatrix() {
-    return glm::lookAt(position, position + front, up);
+  const glm::mat4& getViewMatrix() {
+    viewMatrix = glm::lookAt(position, position + front, up);
+    return viewMatrix;
   };
 
-  glm::mat4 getProjectionMatrix() { return projection; }
+  const glm::mat4& getProjectionMatrix() { return projection; }
 
 private:
   float FOV, zNear, zFar;
@@ -66,6 +67,7 @@ private:
   glm::vec3 front;
   glm::vec3 up;
   glm::mat4 projection;
+  glm::mat4 viewMatrix;
   float yaw;
   float pitch;
 

@@ -1,5 +1,6 @@
 #include "app.h"
 #include "ecs/systems.h"
+#include "resource_manager.h"
 #include <GLFW/glfw3.h>
 #include <chrono>
 #include <glm/ext/vector_float3.hpp>
@@ -16,7 +17,7 @@ using std::string;
 
 extern Registry g_registry;
 
-App::App(int width, int height, std::string title)
+App::App(int width, int height, const std::string &title)
     : window(width, height, title), shader(),
       camera(45.f, width, height, 0.1f, 1000.f), frameCounter(0) {
   if (!gladLoadGLLoader((void *(*)(const char *))glfwGetProcAddress)) {
@@ -44,15 +45,42 @@ App::App(int width, int height, std::string title)
                                  framebuffer_size_callback);
 }
 
-void App::addObj(std::string objPath, string objName, glm::vec3 pos,
-                 glm::vec3 rot, glm::vec3 scale) {
-  auto obj = std::make_shared<Object>();
-  std::cerr << "Loading: " << obj->loadMesh(objPath, objName) << " verts"
-            << std::endl;
-  obj->setScale(scale);
-  obj->setPosition(pos);
-  obj->setRotation(rot);
-  objs.push_back(obj);
+void App::loadObjectFromConfig(const ObjectConfig &cfg) {
+  int obj = g_registry.createEntity();
+  g_registry.getMesh(obj).mesh =
+      resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
+  g_registry.getTransform(obj).position = cfg.transform.pos;
+  g_registry.getTransform(obj).rotation = cfg.transform.rot;
+  g_registry.getTransform(obj).scale = cfg.transform.scale;
+
+  if (cfg.light.color != glm::vec3(0, 0, 0)) {
+    g_registry.getLight(obj) = Light{cfg.light.color, cfg.light.intensity};
+  }
+
+  if (cfg.sineAnim.amplitude != 0.f) {
+    g_registry.getSineAnimator(obj) = {
+        cfg.sineAnim.axis,
+        cfg.sineAnim.amplitude,
+        cfg.sineAnim.frequency,
+        cfg.sineAnim.phase,
+    };
+  }
+}
+
+void App::loadObjectsFromConfig(const std::vector<ObjectConfig> &configs) {
+  for (const auto &cfg : configs) {
+    loadObjectFromConfig(cfg);
+  }
+}
+
+void fps(float deltaTime) {
+  static float fpsTimer = 0;
+  fpsTimer += deltaTime;
+
+  if (fpsTimer >= 1) {
+    std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
+    fpsTimer = 0;
+  }
 }
 
 void App::run() {
@@ -64,18 +92,26 @@ void App::run() {
   shader.addUniform("lightPos");
   shader.addUniform("lightColor");
 
-  std::string CUBE_PATH = "assets/3d-cubes/";
-  std::string HUMAN_PATH = "assets/human/";
-  std::string CAR_PATH = "assets/Car/";
-  std::string WOLF_PATH = "assets/wolf/";
+  const std::vector<ObjectConfig> objectConfigs = {
+      {{"assets/human/", "FinalBaseMesh.obj"}},
 
-  addObj(HUMAN_PATH, "FinalBaseMesh.obj");
-  addObj(CAR_PATH, "Car.obj", {10, 0, 10}, {0, 0, 0}, {.1, .1, .1});
-  addObj(CUBE_PATH, "cube.obj");
-  addObj(WOLF_PATH, "Wolf_obj.obj", {10, 5, 1}, {0, 0, 0}, {2, 2, 2});
+      {{"assets/Car/", "Car.obj"},
+       {{0, 0, 0}, 1.0f},
+       {{10, 0, 10}, {0, 0, 0}, {.1, .1, .1}}},
+
+      {{"assets/3d-cubes/", "cube-tex.obj"},
+       {{1, 1, 1}, 1.0f},
+       {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
+       {{1, 0, 0}, .01, 1.5, 1}},
+
+      {{"assets/wolf/", "Wolf_obj.obj"},
+       {{0, 0, 0}, 1.0f},
+       {{10, 5, 1}, {0, 0, 0}, {2, 2, 2}}},
+  };
+
+  loadObjectsFromConfig(objectConfigs);
 
   auto prevTime = std::chrono::steady_clock::now();
-  float fpsTimer;
   float totalTime;
 
   while (!window.shouldClose()) {
@@ -83,51 +119,24 @@ void App::run() {
     auto deltaTime =
         std::chrono::duration<float>(currentTime - prevTime).count();
     prevTime = currentTime;
-
     totalTime += deltaTime;
-    fpsTimer += deltaTime;
-
-    if (fpsTimer >= 1) {
-      std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
-      fpsTimer = 0;
-    }
-
-    // Set texture unit for all objects
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(shader.getUniformLocation("ourTexture"), 0);
-
-    // Find light position and color from ECS
-    glm::vec3 lightPos;
-    glm::vec3 lightColor(1, 1, 1);
-    for (size_t i = 0; i < g_registry.entityCount(); i++) {
-      auto &lightOpt = g_registry.getLight(i);
-      if (lightOpt.has_value()) {
-        // Update light position
-        auto &transform = g_registry.getTransform(i);
-        transform.position = {glm::sin(totalTime) * 5.0f, 0.0f, 0.0f};
-        lightPos = transform.position;
-        lightColor = lightOpt->color;
-        break;
-      }
-    }
-    glUniform3f(shader.getUniformLocation("lightPos"), lightPos.x, lightPos.y,
-                lightPos.z);
-    glUniform3f(shader.getUniformLocation("lightColor"), lightColor.r,
-                lightColor.g, lightColor.b);
-
-    // moves camera object
-    move(deltaTime);
+    fps(deltaTime);
 
     // clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // update camera
+    moveCamera(deltaTime);
     glUniformMatrix4fv(shader.getUniformLocation("view"), 1, GL_FALSE,
                        glm::value_ptr(camera.getViewMatrix()));
 
     // Update and render via ECS systems
     updateTransforms(g_registry);
-    renderAll(g_registry, shader.getUniformLocation("model"));
+    updateAnimations(g_registry, totalTime);
+
+    renderAll(g_registry, shader.getUniformLocation("model"),
+              shader.getUniformLocation("lightPos"),
+              shader.getUniformLocation("lightColor"));
 
     window.swapBuffers();
   }
@@ -136,7 +145,7 @@ void App::run() {
 }
 
 // would like to abstract into camera class
-void App::move(float deltaTime) {
+void App::moveCamera(float deltaTime) {
   if (input.w)
     camera.moveForward(MOVEMENT_SPEED * deltaTime);
   if (input.s)

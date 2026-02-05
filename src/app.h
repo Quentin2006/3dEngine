@@ -2,7 +2,7 @@
 
 #include "../include/glad/glad.h"
 #include "camera.h"
-#include "object.h"
+#include "resource_manager.h"
 #include "shader.h"
 #include "window.h"
 #include <GLFW/glfw3.h>
@@ -17,6 +17,31 @@ struct InputState {
   bool w = false, a = false, s = false, d = false;
   bool q = false, e = false;
   bool up = false, down = false, left = false, right = false;
+};
+
+struct ObjectConfig {
+  struct Mesh {
+    std::string path;
+    std::string name;
+  } mesh{};
+
+  struct Light {
+    glm::vec3 color{0, 0, 0};
+    float intensity = 1.0f;
+  } light{};
+
+  struct Transform {
+    glm::vec3 pos{0, 0, 0};
+    glm::vec3 rot{0, 0, 0};
+    glm::vec3 scale{1, 1, 1};
+  } transform{};
+
+  struct SineAnim {
+    glm::vec3 axis{1, 0, 0};
+    float amplitude = 0.0f;
+    float frequency = 1.0f;
+    float phase = 0.0f;
+  } sineAnim{};
 };
 
 struct Controls {
@@ -43,24 +68,23 @@ struct Controls {
 
 class App {
 public:
-  App(int width, int height, std::string title);
+  App(int width, int height, const std::string &title);
 
   void run();
-  void move(float deltaTime);
+  void moveCamera(float deltaTime);
 
   Window window;
   Shader shader;
   Camera camera;
-  std::vector<std::shared_ptr<Object>> objs;
   InputState input;
 
 private:
   bool loadShaders();
-  void addObj(std::string objPath, std::string objName,
-              glm::vec3 pos = {0, 0, 0}, glm::vec3 rot = {0, 0, 0},
-              glm::vec3 scale = {1, 1, 1});
+  void loadObjectFromConfig(const ObjectConfig &cfg);
+  void loadObjectsFromConfig(const std::vector<ObjectConfig> &configs);
 
   unsigned int frameCounter;
+  ResourceManager resourceManager;
 };
 
 inline void key_callback(GLFWwindow *window, int key, int, int action, int) {

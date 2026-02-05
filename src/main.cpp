@@ -1,4 +1,7 @@
 #include "app.h"
+#include "ecs/registry.h"
+
+Registry g_registry;
 
 const unsigned int WIDTH = 1000;
 const unsigned int HEIGHT = 1000;

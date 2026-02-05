@@ -4,7 +4,7 @@
 
 extern "C" int gladLoadGLLoader(void *(*proc)(const char *));
 
-Window::Window(int width, int height, std::string title)
+Window::Window(int width, int height, const std::string& title)
     : width(width), height(height) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

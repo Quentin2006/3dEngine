@@ -4,7 +4,7 @@
 #include <string>
 class Window {
 public:
-  Window(int width, int height, std::string title);
+  Window(int width, int height, const std::string& title);
 
   int getWidth() { return width; }
   int getHeight() { return height; }

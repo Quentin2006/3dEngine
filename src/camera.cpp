@@ -16,18 +16,14 @@ void Camera::rotatePitch(float delta) {
   updateFront();
 }
 
-void Camera::moveForward(float distance) {
-  position += front * distance;
-}
+void Camera::moveForward(float distance) { position += front * distance; }
 
 void Camera::moveRight(float distance) {
   glm::vec3 right = glm::normalize(glm::cross(front, up));
   position += right * distance;
 }
 
-void Camera::moveUp(float distance) {
-  position += up * distance;
-}
+void Camera::moveUp(float distance) { position += up * distance; }
 
 void Camera::updateFront() {
   glm::vec3 newFront;
