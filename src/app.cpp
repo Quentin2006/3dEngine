@@ -40,10 +40,10 @@ App::App(int width, int height, const std::string &title)
 
   // Setup window user pointer for callbacks
   glfwSetWindowUserPointer(window.getGLFWwindow(), this);
-  
+
   // Setup InputManager
   inputManager.initializeDefaults();
-  
+
   // Setup callbacks
   glfwSetKeyCallback(window.getGLFWwindow(), App::keyCallback);
   glfwSetFramebufferSizeCallback(window.getGLFWwindow(),
@@ -144,7 +144,7 @@ void App::run() {
               shader.getUniformLocation("lightColor"));
 
     window.swapBuffers();
-    
+
     // Reset input pressed states for next frame
     inputManager.endFrame();
   }
@@ -174,19 +174,17 @@ void App::moveCamera(float deltaTime) {
     camera.rotateYaw(-ROTATION_SPEED * deltaTime);
   if (inputManager.isActionActive(InputAction::ROTATE_YAW_RIGHT))
     camera.rotateYaw(ROTATION_SPEED * deltaTime);
-  
-  // Handle one-shot action for shader reload
   if (inputManager.wasActionPressed(InputAction::RELOAD_SHADERS)) {
-    std::cerr << "Reloading shaders" << std::endl;
     shader.loadShaders();
   }
 }
 
-void App::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+void App::keyCallback(GLFWwindow *window, int key, int scancode, int action,
+                      int mods) {
   App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
-  
+
   if (!app)
     return;
-  
+
   app->inputManager.processKeyEvent(key, action);
 }

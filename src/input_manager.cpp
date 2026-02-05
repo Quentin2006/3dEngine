@@ -1,5 +1,4 @@
 #include "input_manager.h"
-#include <iostream>
 
 InputManager::InputManager() {
   // Initialize all actions to false
@@ -41,7 +40,7 @@ bool InputManager::wasActionPressed(InputAction action) const {
 
 void InputManager::endFrame() {
   // Reset pressed states for next frame
-  for (auto& [action, pressed] : actionPressedThisFrame) {
+  for (auto &[action, pressed] : actionPressedThisFrame) {
     pressed = false;
   }
 }
@@ -60,7 +59,7 @@ void InputManager::processKeyEvent(int key, int action) {
   }
 
   InputAction inputAction = actionOpt.value();
-  
+
   if (pressed) {
     actionStates[inputAction] = true;
     actionPressedThisFrame[inputAction] = true;
@@ -73,9 +72,7 @@ void InputManager::bindKey(int glfwKey, InputAction action) {
   keyBindings[glfwKey] = action;
 }
 
-void InputManager::unbindKey(int glfwKey) {
-  keyBindings.erase(glfwKey);
-}
+void InputManager::unbindKey(int glfwKey) { keyBindings.erase(glfwKey); }
 
 std::optional<InputAction> InputManager::getActionForKey(int key) const {
   auto it = keyBindings.find(key);

@@ -47,7 +47,8 @@ public:
   void moveCamera(float deltaTime);
 
   // GLFW callbacks - static methods that forward to instance
-  static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
+  static void keyCallback(GLFWwindow *window, int key, int scancode, int action,
+                          int mods);
 
   Window window;
   Shader shader;
