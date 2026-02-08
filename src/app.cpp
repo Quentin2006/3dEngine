@@ -15,6 +15,16 @@
 
 using std::string;
 
+void fps(float deltaTime) {
+  static float fpsTimer = 0;
+  fpsTimer += deltaTime;
+
+  if (fpsTimer >= 1) {
+    std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
+    fpsTimer = 0;
+  }
+}
+
 App::App(int width, int height, const std::string &title)
     : window(width, height, title), shader(),
       camera(45.f, width, height, 0.1f, 1000.f), frameCounter(0) {
@@ -71,16 +81,6 @@ void App::loadObjectsFromConfig(const std::vector<ObjectConfig> &configs) {
   }
 }
 
-void fps(float deltaTime) {
-  static float fpsTimer = 0;
-  fpsTimer += deltaTime;
-
-  if (fpsTimer >= 1) {
-    std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
-    fpsTimer = 0;
-  }
-}
-
 void App::run() {
   // get uniform location, now that the shader exists, we can find the ID
   shader.addUniform("model");
@@ -110,7 +110,7 @@ void App::run() {
   loadObjectsFromConfig(objectConfigs);
 
   auto prevTime = std::chrono::steady_clock::now();
-  float totalTime;
+  float totalTime = 0;
 
   while (!window.shouldClose()) {
     auto currentTime = std::chrono::steady_clock::now();
@@ -135,6 +135,19 @@ void App::run() {
     renderAll(registry, shader.getUniformLocation("model"),
               shader.getUniformLocation("lightPos"),
               shader.getUniformLocation("lightColor"));
+
+    if (totalTime > 10) {
+      registry.destroyEntity(0);
+    }
+    if (totalTime > 20) {
+      registry.destroyEntity(1);
+    }
+    if (totalTime > 30) {
+      registry.destroyEntity(2);
+    }
+    if (totalTime > 40) {
+      registry.destroyEntity(3);
+    }
 
     window.swapBuffers();
   }

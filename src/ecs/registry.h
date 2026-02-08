@@ -13,6 +13,13 @@ public:
     return id;
   }
 
+  void destroyEntity(int entity) {
+    transforms[entity] = {};
+    meshes[entity].mesh.reset();
+    lights[entity].reset();
+    sineAnimators[entity].reset();
+  }
+
   Transform &getTransform(int entity) { return transforms[entity]; }
   MeshComp &getMesh(int entity) { return meshes[entity]; }
   std::optional<SineAnimator> &getSineAnimator(int entity) {
@@ -31,4 +38,6 @@ private:
   std::vector<MeshComp> meshes;
   std::vector<std::optional<Light>> lights;
   std::vector<std::optional<SineAnimator>> sineAnimators;
+
+  std::vector<int> sparse;
 };
