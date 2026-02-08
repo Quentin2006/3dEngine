@@ -15,8 +15,6 @@
 
 using std::string;
 
-extern Registry g_registry;
-
 App::App(int width, int height, const std::string &title)
     : window(width, height, title), shader(),
       camera(45.f, width, height, 0.1f, 1000.f), frameCounter(0) {
@@ -46,19 +44,19 @@ App::App(int width, int height, const std::string &title)
 }
 
 void App::loadObjectFromConfig(const ObjectConfig &cfg) {
-  int obj = g_registry.createEntity();
-  g_registry.getMesh(obj).mesh =
+  int obj = registry.createEntity();
+  registry.getMesh(obj).mesh =
       resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
-  g_registry.getTransform(obj).position = cfg.transform.pos;
-  g_registry.getTransform(obj).rotation = cfg.transform.rot;
-  g_registry.getTransform(obj).scale = cfg.transform.scale;
+  registry.getTransform(obj).position = cfg.transform.pos;
+  registry.getTransform(obj).rotation = cfg.transform.rot;
+  registry.getTransform(obj).scale = cfg.transform.scale;
 
   if (cfg.light.color != glm::vec3(0, 0, 0)) {
-    g_registry.getLight(obj) = Light{cfg.light.color, cfg.light.intensity};
+    registry.getLight(obj) = Light{cfg.light.color, cfg.light.intensity};
   }
 
   if (cfg.sineAnim.amplitude != 0.f) {
-    g_registry.getSineAnimator(obj) = {
+    registry.getSineAnimator(obj) = {
         cfg.sineAnim.axis,
         cfg.sineAnim.amplitude,
         cfg.sineAnim.frequency,
@@ -131,10 +129,10 @@ void App::run() {
                        glm::value_ptr(camera.getViewMatrix()));
 
     // Update and render via ECS systems
-    updateTransforms(g_registry);
-    updateAnimations(g_registry, totalTime);
+    updateTransforms(registry);
+    updateAnimations(registry, totalTime);
 
-    renderAll(g_registry, shader.getUniformLocation("model"),
+    renderAll(registry, shader.getUniformLocation("model"),
               shader.getUniformLocation("lightPos"),
               shader.getUniformLocation("lightColor"));
 

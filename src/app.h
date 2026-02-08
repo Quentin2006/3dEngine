@@ -2,6 +2,7 @@
 
 #include "../include/glad/glad.h"
 #include "camera.h"
+#include "ecs/registry.h"
 #include "resource_manager.h"
 #include "shader.h"
 #include "window.h"
@@ -73,18 +74,23 @@ public:
   void run();
   void moveCamera(float deltaTime);
 
-  Window window;
-  Shader shader;
-  Camera camera;
-  InputState input;
+  Window *getWindow() { return &window; };
+  Camera *getCamera() { return &camera; };
+  InputState *getInputState() { return &input; };
+  Shader *getShader() { return &shader; };
 
 private:
   bool loadShaders();
   void loadObjectFromConfig(const ObjectConfig &cfg);
   void loadObjectsFromConfig(const std::vector<ObjectConfig> &configs);
 
+  Window window;
+  Shader shader;
+  Camera camera;
+  InputState input;
   unsigned int frameCounter;
   ResourceManager resourceManager;
+  Registry registry;
 };
 
 inline void key_callback(GLFWwindow *window, int key, int, int action, int) {
@@ -101,40 +107,40 @@ inline void key_callback(GLFWwindow *window, int key, int, int action, int) {
 
   switch (key) {
   case Controls::MOVE_FORWARD:
-    app->input.w = pressed;
+    app->getInputState()->w = pressed;
     return;
   case Controls::MOVE_BACKWARD:
-    app->input.s = pressed;
+    app->getInputState()->s = pressed;
     return;
   case Controls::MOVE_LEFT:
-    app->input.a = pressed;
+    app->getInputState()->a = pressed;
     return;
   case Controls::MOVE_RIGHT:
-    app->input.d = pressed;
+    app->getInputState()->d = pressed;
     return;
   case Controls::MOVE_DOWN:
-    app->input.q = pressed;
+    app->getInputState()->q = pressed;
     return;
   case Controls::MOVE_UP:
-    app->input.e = pressed;
+    app->getInputState()->e = pressed;
+    return;
+  case Controls::ROTATE_PITCH_UP:
+    app->getInputState()->up = pressed;
+    return;
+  case Controls::ROTATE_PITCH_DOWN:
+    app->getInputState()->down = pressed;
+    return;
+  case Controls::ROTATE_YAW_LEFT:
+    app->getInputState()->left = pressed;
+    return;
+  case Controls::ROTATE_YAW_RIGHT:
+    app->getInputState()->right = pressed;
     return;
   case Controls::RELOAD_SHADERS:
     if (pressed) {
       std::cerr << "Reloading shaders" << std::endl;
-      app->shader.loadShaders();
+      app->getShader()->loadShaders();
     }
-    return;
-  case Controls::ROTATE_PITCH_UP:
-    app->input.up = pressed;
-    return;
-  case Controls::ROTATE_PITCH_DOWN:
-    app->input.down = pressed;
-    return;
-  case Controls::ROTATE_YAW_LEFT:
-    app->input.left = pressed;
-    return;
-  case Controls::ROTATE_YAW_RIGHT:
-    app->input.right = pressed;
     return;
   default:
     return;
@@ -149,14 +155,15 @@ inline void framebuffer_size_callback(GLFWwindow *window, int width,
     return;
 
   // UPDATE WIDTH
-  app->window.setWidth(width);
-  app->window.setHeight(height);
+  app->getWindow()->setWidth(width);
+  app->getWindow()->setHeight(height);
 
   // UPDATE PROJECTION MATRIX
-  app->camera.updateAspect(width, height);
+  app->getCamera()->updateAspect(width, height);
 
-  glUniformMatrix4fv(app->shader.getUniformLocation("projection"), 1, GL_FALSE,
-                     glm::value_ptr(app->camera.getProjectionMatrix()));
+  glUniformMatrix4fv(app->getShader()->getUniformLocation("projection"), 1,
+                     GL_FALSE,
+                     glm::value_ptr(app->getCamera()->getProjectionMatrix()));
 
   glViewport(0, 0, width, height);
 }
