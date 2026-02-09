@@ -9,12 +9,10 @@ uniform vec3 lightPos;
 uniform vec3 lightColor;
 uniform sampler2D ourTexture;
 
-uniform sampler2D texture1;
-
 void main()
 {
   // get the texture color
-  vec4 texColor = texture(texture1, TexCoord);
+  vec4 texColor = texture(ourTexture, TexCoord);
 
   // clacuate the ambient light
   float ambientStrength = 0.1;

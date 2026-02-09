@@ -9,12 +9,24 @@ Shader::Shader() {}
 Shader::~Shader() { glDeleteProgram(currentShaderProgram); }
 
 void Shader::loadShaders() {
-  vertexSource = readFile("src/shaders/shader.vert");
-  fragmentSource = readFile("src/shaders/shader.frag");
+  static bool isLoaded = false;
 
-  currentShaderProgram =
-      createShaderProgram(vertexSource.c_str(), fragmentSource.c_str());
-  glUseProgram(currentShaderProgram);
+  if (!isLoaded) {
+    vertexSource = readFile("src/shaders/shader.vert");
+    fragmentSource = readFile("src/shaders/shader.frag");
+
+    glDeleteProgram(currentShaderProgram);
+
+    int newProgram =
+        createShaderProgram(vertexSource.c_str(), fragmentSource.c_str());
+
+    currentShaderProgram = newProgram;
+
+    glUseProgram(currentShaderProgram);
+    isLoaded = true;
+  } else {
+    std::cerr << "ERROR: Cannot hot reload shaders" << std::endl;
+  }
 }
 
 std::string Shader::readFile(const char *path) {

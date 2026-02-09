@@ -136,12 +136,12 @@ inline void key_callback(GLFWwindow *window, int key, int, int action, int) {
   case Controls::ROTATE_YAW_RIGHT:
     app->getInputState()->right = pressed;
     return;
-  case Controls::RELOAD_SHADERS:
-    if (pressed) {
-      std::cerr << "Reloading shaders" << std::endl;
-      app->getShader()->loadShaders();
-    }
-    return;
+  // case Controls::RELOAD_SHADERS:
+  //   if (pressed) {
+  //     std::cerr << "Reloading shaders" << std::endl;
+  //     app->getShader()->loadShaders();
+  //   }
+  //   return;
   default:
     return;
   }

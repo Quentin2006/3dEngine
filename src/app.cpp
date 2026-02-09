@@ -30,7 +30,6 @@ App::App(int width, int height, const std::string &title)
       camera(45.f, width, height, 0.1f, 1000.f), frameCounter(0) {
   if (!gladLoadGLLoader((void *(*)(const char *))glfwGetProcAddress)) {
     std::cerr << "Failed to initialize GLAD" << std::endl;
-    // Handle error (throw exception or exit)
     exit(-1);
   }
   // load the shaders
@@ -75,12 +74,6 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   }
 }
 
-void App::loadObjectsFromConfig(const std::vector<ObjectConfig> &configs) {
-  for (const auto &cfg : configs) {
-    loadObjectFromConfig(cfg);
-  }
-}
-
 void App::run() {
   // get uniform location, now that the shader exists, we can find the ID
   shader.addUniform("model");
@@ -91,23 +84,25 @@ void App::run() {
   shader.addUniform("lightColor");
 
   const std::vector<ObjectConfig> objectConfigs = {
-      {{"assets/human/", "FinalBaseMesh.obj"}},
+      {.mesh = {"assets/human/", "FinalBaseMesh.obj"}},
 
-      {{"assets/Car/", "Car.obj"},
-       {{0, 0, 0}, 1.0f},
-       {{10, 0, 10}, {0, 0, 0}, {.1, .1, .1}}},
+      {.mesh = {"assets/Car/", "Car.obj"},
+       .light = {{0, 0, 0}, 1.0f},
+       .transform = {{10, 0, 10}, {0, 0, 0}, {.1, .1, .1}}},
 
-      {{"assets/3d-cubes/", "cube-tex.obj"},
-       {{1, 1, 1}, 1.0f},
-       {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-       {{1, 0, 0}, .01, 1.5, 1}},
+      {.mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+       .light = {{1, 1, 1}, 1.0f},
+       .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
+       .sineAnim = {{1, 0, 0}, .01, 1.5, 1}},
 
-      {{"assets/wolf/", "Wolf_obj.obj"},
-       {{0, 0, 0}, 1.0f},
-       {{10, 5, 1}, {0, 0, 0}, {2, 2, 2}}},
+      {.mesh = {"assets/wolf/", "Wolf_obj.obj"},
+       .light = {{0, 0, 0}, 1.0f},
+       .transform = {{10, 5, 1}, {0, 0, 0}, {2, 2, 2}}},
   };
 
-  loadObjectsFromConfig(objectConfigs);
+  for (const auto &cfg : objectConfigs) {
+    loadObjectFromConfig(cfg);
+  }
 
   auto prevTime = std::chrono::steady_clock::now();
   float totalTime = 0;
@@ -135,19 +130,6 @@ void App::run() {
     renderAll(registry, shader.getUniformLocation("model"),
               shader.getUniformLocation("lightPos"),
               shader.getUniformLocation("lightColor"));
-
-    if (totalTime > 10) {
-      registry.destroyEntity(0);
-    }
-    if (totalTime > 20) {
-      registry.destroyEntity(1);
-    }
-    if (totalTime > 30) {
-      registry.destroyEntity(2);
-    }
-    if (totalTime > 40) {
-      registry.destroyEntity(3);
-    }
 
     window.swapBuffers();
   }
