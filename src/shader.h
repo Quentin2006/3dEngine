@@ -11,6 +11,7 @@ public:
   unsigned int getShaderProgram() { return currentShaderProgram; }
   int addUniform(const std::string &name);
   unsigned int getUniformLocation(const std::string &name);
+  void bindUniformBlock(const std::string &name, unsigned int bindingPoint);
 
 private:
   std::string readFile(const char *path);

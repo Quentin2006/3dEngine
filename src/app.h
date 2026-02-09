@@ -6,6 +6,7 @@
 #include "ecs/registry.h"
 #include "resource_manager.h"
 #include "shader.h"
+#include "uniformBuffer.h"
 #include "window.h"
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -22,10 +23,11 @@ struct InputState {
 };
 
 struct ObjectConfig {
-  MeshPath mesh{};
-  Light light{};
-  Transform transform{};
-  SineAnimator sineAnim{};
+  MeshPath mesh{"", ""};
+  Transform transform{{0, 0, 0}, {0, 0, 0}, {1, 1, 1}};
+  Light light{{0, 0, 0}, 0.f};
+  SineAnimator sineAnim{{0, 0, 0}, 0.f, 0.f, 0.f};
+  RotationAnimator rotationAnim{{0, 0, 0}, 0.f};
 };
 
 struct Controls {
@@ -74,6 +76,7 @@ private:
   unsigned int frameCounter;
   ResourceManager resourceManager;
   Registry registry;
+  UniformBuffer lightUniformBuffer;
 };
 
 inline void key_callback(GLFWwindow *window, int key, int, int action, int) {

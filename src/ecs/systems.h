@@ -4,6 +4,7 @@
 #include "registry.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 
 inline void updateTransforms(Registry &reg) {
   for (auto &t : reg.allTransforms()) {
@@ -19,34 +20,37 @@ inline void updateTransforms(Registry &reg) {
   }
 }
 
-inline void updateAnimations(Registry &reg, float totalTime) {
+inline void updateAnimations(Registry &reg, float deltaTime) {
+  static float totalTime = 0;
+  totalTime += deltaTime;
   for (size_t i = 0; i < reg.entityCount(); i++) {
-    auto &animOpt = reg.getSineAnimator(i);
-    if (animOpt.has_value()) {
-      auto &anim = animOpt.value();
+    // NOTE: CHECK SINE ANIMATOR
+    auto &sineOpt = reg.getSineAnimator(i);
+    if (sineOpt.has_value()) {
+      auto &anim = sineOpt.value();
       auto &t = reg.getTransform(i);
       float offset =
           sin(totalTime * anim.frequency + anim.phase) * anim.amplitude;
       t.position += anim.axis * offset;
     }
+    // NOTE: CHECK ROTATION ANIMATOR
+    auto &rotOpt = reg.getRotationAnimator(i);
+    if (rotOpt.has_value()) {
+      auto &anim = rotOpt.value();
+      auto &t = reg.getTransform(i);
+      t.rotation += anim.axis * anim.rpm * 6.0f * deltaTime;
+    }
   }
 }
 
-inline void renderAll(Registry &reg, GLuint modelUniform,
-                      GLuint lightPosUniform, GLuint lightColorUniform) {
+inline void renderAll(Registry &reg, GLuint modelUniform) {
+
   for (size_t i = 0; i < reg.entityCount(); i++) {
     auto &meshComp = reg.getMesh(i);
     if (meshComp.mesh) {
       glUniformMatrix4fv(modelUniform, 1, GL_FALSE,
                          glm::value_ptr(reg.getTransform(i).matrix));
       meshComp.mesh->draw();
-    }
-    auto &lightOpt = reg.getLight(i);
-    if (lightOpt.has_value()) {
-      auto &light = lightOpt->color;
-      auto &pos = reg.getTransform(i).position;
-      glUniform3f(lightPosUniform, pos.x, pos.y, pos.z);
-      glUniform3f(lightColorUniform, light.r, light.g, light.b);
     }
   }
 }

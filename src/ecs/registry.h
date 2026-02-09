@@ -10,6 +10,7 @@ public:
     meshes.push_back({});
     lights.push_back({});
     sineAnimators.push_back({});
+    rotationAnimators.push_back({});
     return id;
   }
 
@@ -25,6 +26,9 @@ public:
   std::optional<SineAnimator> &getSineAnimator(int entity) {
     return sineAnimators[entity];
   }
+  std::optional<RotationAnimator> &getRotationAnimator(int entity) {
+    return rotationAnimators[entity];
+  }
   std::optional<Light> &getLight(int entity) { return lights[entity]; }
 
   size_t entityCount() const { return transforms.size(); }
@@ -38,6 +42,7 @@ private:
   std::vector<MeshComp> meshes;
   std::vector<std::optional<Light>> lights;
   std::vector<std::optional<SineAnimator>> sineAnimators;
+  std::vector<std::optional<RotationAnimator>> rotationAnimators;
 
   std::vector<int> sparse;
 };

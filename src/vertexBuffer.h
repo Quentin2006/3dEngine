@@ -12,16 +12,16 @@ struct Vertex {
   glm::vec3 normal = glm::vec3(0.0f);
 };
 
-class Buffer {
+class vertexBuffer {
 public:
-  Buffer();
-  ~Buffer();
+  vertexBuffer();
+  ~vertexBuffer();
 
   // Prevent copying/moving (OpenGL resources must stay in one place)
-  Buffer(const Buffer &) = delete;
-  Buffer &operator=(const Buffer &) = delete;
-  Buffer(Buffer &&) = delete;
-  Buffer &operator=(Buffer &&) = delete;
+  vertexBuffer(const vertexBuffer &) = delete;
+  vertexBuffer &operator=(const vertexBuffer &) = delete;
+  vertexBuffer(vertexBuffer &&) = delete;
+  vertexBuffer &operator=(vertexBuffer &&) = delete;
 
   // Upload vertex data to GPU and configure vertex attributes.
   // Must be called before rendering. Can be called multiple times to update

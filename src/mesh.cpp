@@ -1,5 +1,6 @@
 #include "mesh.h"
 #include "../include/glad/glad.h"
+#include "vertexBuffer.h"
 
 #include <glm/glm.hpp>
 
@@ -52,6 +53,7 @@ void Mesh::setTexture(const std::string &path) {
       stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
 
   if (data) {
+    std::cerr << "Loading texture: " << path << std::endl;
     GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
 
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,

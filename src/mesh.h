@@ -1,6 +1,6 @@
 #pragma once
 
-#include "buffer.h"
+#include "vertexBuffer.h"
 #include <string>
 #include <vector>
 
@@ -8,7 +8,7 @@ class Mesh {
 public:
   Mesh();
 
-  // Prevent copying (Buffer is immobile)
+  // Prevent copying (vertexBuffer is immobile)
   Mesh(const Mesh &) = delete;
   Mesh &operator=(const Mesh &) = delete;
 
@@ -25,7 +25,7 @@ public:
 private:
   void setTexture(const std::string &path);
 
-  Buffer buffer;
+  vertexBuffer buffer;
   size_t vertexCount;
   unsigned int texture;
 

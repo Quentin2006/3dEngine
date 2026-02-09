@@ -1,13 +1,13 @@
-#include "buffer.h"
+#include "vertexBuffer.h"
 #include "../include/glad/glad.h"
 
-Buffer::Buffer() : VAO(0), VBO(0) {
+vertexBuffer::vertexBuffer() : VAO(0), VBO(0) {
   // Generate OpenGL handles for VAO and VBO
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
 }
 
-Buffer::~Buffer() {
+vertexBuffer::~vertexBuffer() {
   // Only delete if we still own the resources (check for 0)
   if (VBO)
     glDeleteBuffers(1, &VBO);
@@ -15,7 +15,7 @@ Buffer::~Buffer() {
     glDeleteVertexArrays(1, &VAO);
 }
 
-void Buffer::uploadVertices(const std::vector<Vertex> &vertices) {
+void vertexBuffer::uploadVertices(const std::vector<Vertex> &vertices) {
   // Skip if no data provided
   if (vertices.empty())
     return;

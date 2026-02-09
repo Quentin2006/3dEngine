@@ -1,6 +1,7 @@
 #include "app.h"
 #include "ecs/systems.h"
 #include "resource_manager.h"
+#include "uniformBuffer.h"
 #include <GLFW/glfw3.h>
 #include <chrono>
 #include <glm/ext/vector_float3.hpp>
@@ -20,7 +21,7 @@ void fps(float deltaTime) {
   fpsTimer += deltaTime;
 
   if (fpsTimer >= 1) {
-    std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
+    // std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
     fpsTimer = 0;
   }
 }
@@ -54,21 +55,21 @@ App::App(int width, int height, const std::string &title)
 
 void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   int obj = registry.createEntity();
+
   registry.getMesh(obj).mesh =
       resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
+
   registry.getTransform(obj) = cfg.transform;
 
-  if (cfg.light.color != glm::vec3(0, 0, 0)) {
-    registry.getLight(obj) = Light{cfg.light.color, cfg.light.intensity};
+  if (cfg.light.intensity != 0.f) {
+    registry.getLight(obj) = cfg.light;
   }
 
   if (cfg.sineAnim.amplitude != 0.f) {
-    registry.getSineAnimator(obj) = {
-        cfg.sineAnim.axis,
-        cfg.sineAnim.amplitude,
-        cfg.sineAnim.frequency,
-        cfg.sineAnim.phase,
-    };
+    registry.getSineAnimator(obj) = cfg.sineAnim;
+  }
+  if (cfg.rotationAnim.rpm != 0.f) {
+    registry.getRotationAnimator(obj) = cfg.rotationAnim;
   }
 }
 
@@ -78,24 +79,47 @@ void App::run() {
   shader.addUniform("view");
   shader.addUniform("projection");
   shader.addUniform("ourTexture");
-  shader.addUniform("lightPos");
-  shader.addUniform("lightColor");
+
+  // Bind the shader's LightBlock uniform block to binding point 0
+  // This connects the shader's uniform block to the UBO at binding point 0
+  shader.bindUniformBlock("LightBlock", 0);
+
+  // Bind light uniform buffer to binding point 0
+  // This makes the buffer data available at binding point 0
+  lightUniformBuffer.bindToPoint(0);
 
   const std::vector<ObjectConfig> objectConfigs = {
-      {.mesh = {"assets/human/", "FinalBaseMesh.obj"}},
+      {.mesh = {"assets/human/", "FinalBaseMesh.obj"},
+       .rotationAnim = {{0, 1, 0}, 30}},
 
-      {.mesh = {"assets/Car/", "Car.obj"},
-       .light = {{0, 0, 0}, 1.0f},
-       .transform = {{10, 0, 10}, {0, 0, 0}, {.1, .1, .1}}},
+      {
+          .mesh = {"assets/Car/", "Car.obj"},
+          .transform = {{10, 0, 10}, {0, 0, 0}, {.1, .1, .1}},
+      },
 
-      {.mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-       .light = {{1, 1, 1}, 1.0f},
-       .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-       .sineAnim = {{1, 0, 0}, .01, 1.5, 1}},
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
+          .light = {{1, 0, 0}, 1.0f},
+          .sineAnim = {{1, 0, 0}, .01, 2, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
+          .light = {{0, 1, 0}, 1.0f},
+          .sineAnim = {{0, 1, 0}, .01, 1.5, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
+          .light = {{0, 0, 1}, 1.0f},
+          .sineAnim = {{0, 0, 1}, .01, 1.0, 1},
+      },
 
-      {.mesh = {"assets/wolf/", "Wolf_obj.obj"},
-       .light = {{0, 0, 0}, 1.0f},
-       .transform = {{10, 5, 1}, {0, 0, 0}, {2, 2, 2}}},
+      {
+          .mesh = {"assets/wolf/", "Wolf_obj.obj"},
+          .transform = {{10, 5, 1}, {0, 0, 0}, {2, 2, 2}},
+      },
   };
 
   for (const auto &cfg : objectConfigs) {
@@ -123,11 +147,29 @@ void App::run() {
 
     // Update and render via ECS systems
     updateTransforms(registry);
-    updateAnimations(registry, totalTime);
+    updateAnimations(registry, deltaTime);
 
-    renderAll(registry, shader.getUniformLocation("model"),
-              shader.getUniformLocation("lightPos"),
-              shader.getUniformLocation("lightColor"));
+    // Collect all lights into uniform buffer
+    LightBlock lightBlock{};
+    lightBlock.count = 0;
+    for (size_t i = 0; i < registry.entityCount(); i++) {
+      auto &lightOpt = registry.getLight(i);
+      if (lightOpt.has_value() && lightBlock.count < MAX_LIGHTS) {
+        auto &light = lightOpt.value();
+        auto &pos = registry.getTransform(i).position;
+        lightBlock.lights[lightBlock.count].position = pos;
+        lightBlock.lights[lightBlock.count].color =
+            light.color * light.intensity;
+        lightBlock.count++;
+      }
+    }
+
+    // Ensure UBO is bound to binding point 0 before upload
+    lightUniformBuffer.bindToPoint(0);
+    // Upload light data to GPU
+    lightUniformBuffer.uploadData(&lightBlock, sizeof(LightBlock));
+
+    renderAll(registry, shader.getUniformLocation("model"));
 
     window.swapBuffers();
   }
