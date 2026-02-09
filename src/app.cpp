@@ -56,9 +56,7 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   int obj = registry.createEntity();
   registry.getMesh(obj).mesh =
       resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
-  registry.getTransform(obj).position = cfg.transform.pos;
-  registry.getTransform(obj).rotation = cfg.transform.rot;
-  registry.getTransform(obj).scale = cfg.transform.scale;
+  registry.getTransform(obj) = cfg.transform;
 
   if (cfg.light.color != glm::vec3(0, 0, 0)) {
     registry.getLight(obj) = Light{cfg.light.color, cfg.light.intensity};

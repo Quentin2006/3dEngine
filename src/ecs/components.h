@@ -2,18 +2,23 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <optional>
+#include <string>
 
 class Mesh;
 
+struct MeshComp {
+  std::shared_ptr<Mesh> mesh;
+};
+
+struct MeshPath {
+  std::string path;
+  std::string name;
+};
 struct Transform {
   glm::vec3 position{0, 0, 0};
   glm::vec3 rotation{0, 0, 0};
   glm::vec3 scale{1, 1, 1};
   glm::mat4 matrix{1.0f};
-};
-
-struct MeshComp {
-  std::shared_ptr<Mesh> mesh;
 };
 
 struct SineAnimator {

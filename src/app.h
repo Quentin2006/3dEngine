@@ -2,6 +2,7 @@
 
 #include "../include/glad/glad.h"
 #include "camera.h"
+#include "ecs/components.h"
 #include "ecs/registry.h"
 #include "resource_manager.h"
 #include "shader.h"
@@ -21,28 +22,10 @@ struct InputState {
 };
 
 struct ObjectConfig {
-  struct Mesh {
-    std::string path;
-    std::string name;
-  } mesh{};
-
-  struct Light {
-    glm::vec3 color{0, 0, 0};
-    float intensity = 1.0f;
-  } light{};
-
-  struct Transform {
-    glm::vec3 pos{0, 0, 0};
-    glm::vec3 rot{0, 0, 0};
-    glm::vec3 scale{1, 1, 1};
-  } transform{};
-
-  struct SineAnim {
-    glm::vec3 axis{1, 0, 0};
-    float amplitude = 0.0f;
-    float frequency = 1.0f;
-    float phase = 0.0f;
-  } sineAnim{};
+  MeshPath mesh{};
+  Light light{};
+  Transform transform{};
+  SineAnimator sineAnim{};
 };
 
 struct Controls {
