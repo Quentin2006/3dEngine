@@ -80,10 +80,6 @@ void App::run() {
   shader.addUniform("projection");
   shader.addUniform("ourTexture");
 
-  // Add light intensity uniform with default value of 10.0
-  shader.addUniform("lightIntensity");
-  glUniform1f(shader.getUniformLocation("lightIntensity"), 10.0f);
-
   // Bind the shader's LightBlock uniform block to binding point 0
   // This connects the shader's uniform block to the UBO at binding point 0
   shader.bindUniformBlock("LightBlock", 0);

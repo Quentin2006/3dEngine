@@ -8,6 +8,9 @@ in vec3 FaceNormal;
 
 uniform sampler2D ourTexture;
 
+// Global light intensity multiplier (set via C++ to make scene brighter)
+uniform float lightIntensity = 10.0;
+
 // Maximum number of lights
 #define MAX_LIGHTS 8
 
@@ -34,24 +37,36 @@ void main()
 
   // Iterate through all active lights
   for (int i = 0; i < lightBlock.count; i++) {
-    // Ambient light
-    float ambientStrength = 0.1;
-    vec3 ambientColor = ambientStrength * lightBlock.lights[i].color;
+    // Reduced ambient to balance with brighter lights
+    float ambientStrength = 0.05;
 
-    // Diffuse light
-    vec3 lightDir = normalize(lightBlock.lights[i].position - FragPos);
+    // Calculate light direction and distance once, reuse
+    vec3 toLight = lightBlock.lights[i].position - FragPos;
+    float dist = length(toLight);
+    vec3 lightDir = normalize(toLight);
+
+    // Inverse square law with bias to prevent division by zero
+    float attenuation = 1.0 / (dist * dist + 0.01);
+
+    // Apply attenuation to ambient light for physical accuracy
+    vec3 ambientColor = ambientStrength * lightBlock.lights[i].color * attenuation;
+
+    // Diffuse light with attenuation
     vec3 norm = normalize(FaceNormal);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuseColor = diff * lightBlock.lights[i].color;
+    vec3 diffuseColor = diff * lightBlock.lights[i].color * attenuation;
 
-    // Add contribution from this light
-    finalColor += (ambientColor + diffuseColor) * texColor.rgb;
+    // Add contribution from this light with global intensity multiplier
+    finalColor += (ambientColor + diffuseColor) * lightIntensity * texColor.rgb;
   }
 
   // If no lights, just show texture
   if (lightBlock.count == 0) {
     finalColor = texColor.rgb;
   }
+
+  // Clamp to prevent blowout from multiple bright lights
+  finalColor = min(finalColor, vec3(1.0));
 
   FragColor = vec4(finalColor, 1.0);
 }

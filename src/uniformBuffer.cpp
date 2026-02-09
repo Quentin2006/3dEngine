@@ -14,7 +14,8 @@ UniformBuffer::~UniformBuffer() {
 
 void UniformBuffer::uploadData(const void *data, size_t size) {
   // Upload data to GPU buffer using GL_DYNAMIC_DRAW since lights may change
-  // Note: Buffer must already be bound to GL_UNIFORM_BUFFER target via bindToPoint()
+  // Note: Buffer must already be bound to GL_UNIFORM_BUFFER target via
+  // bindToPoint()
   glBufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
 }
 
