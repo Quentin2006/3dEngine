@@ -4,10 +4,10 @@ layout(location = 1) in vec2 aTexCoord;
 layout(location = 2) in vec3 aNormal;
 
 uniform mat4 model;
-// layout(std140) uniform CameraBlock {
-uniform mat4 view;
-uniform mat4 projection;
-// } cameraBlock;
+layout(std140) uniform CameraBlock {
+  mat4 view;
+  mat4 projection;
+} cameraBlock;
 
 out vec3 FaceNormal;
 out vec3 FragPos;
@@ -22,5 +22,6 @@ void main()
   FaceNormal = mat3(transpose(inverse(model))) * aNormal;
   TexCoord = aTexCoord;
 
-  gl_Position = projection * view * vec4(FragPos, 1.0);
+  gl_Position = cameraBlock.projection * cameraBlock.view * vec4(FragPos, 1.0);
+  // gl_Position = vec4(FragPos, 1.0);
 }

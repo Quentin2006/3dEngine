@@ -39,7 +39,7 @@ App::App(int width, int height, const std::string &title)
 
   // CONFIG
   glViewport(0, 0, window.getWidth(), window.getHeight());
-  glClearColor(0.02f, 0.02f, 0.05f, 1.f);
+  glClearColor(0.2f, 0.2f, 0.5f, 1.f);
   glEnable(GL_DEPTH_TEST);
 
   // Face culling - skip rendering inside faces
@@ -88,13 +88,11 @@ ObjectConfig createLightObj(glm::vec3 &pos, glm::vec3 color,
 void App::run() {
   // get uniform location, now that the shader exists, we can find the ID
   shader.addUniform("model");
-  shader.addUniform("view");
-  shader.addUniform("projection");
   shader.addUniform("ourTexture");
 
   // bind uniforms to shader
   shader.bindUniformBlock("LightBlock", 0);
-  shader.bindUniformBlock("cameraBlock", 1);
+  shader.bindUniformBlock("CameraBlock", 1);
 
   lightUniformBuffer.bindToPoint(0);
   cameraUniformBuffer.bindToPoint(1);
@@ -159,8 +157,6 @@ void App::run() {
 
     // update camera
     moveCamera(deltaTime);
-    glUniformMatrix4fv(shader.getUniformLocation("view"), 1, GL_FALSE,
-                       glm::value_ptr(camera.getViewMatrix()));
 
     // Update and render via ECS systems
     updateTransforms(registry);
@@ -181,7 +177,7 @@ void App::run() {
       }
     }
 
-    // Ensure UBO is bound to binding point 0 before upload
+    // ensure its bounded
     lightUniformBuffer.bindToPoint(0);
     // Upload light data to GPU
     lightUniformBuffer.uploadData(&lightBlock, sizeof(LightBlock));
@@ -191,7 +187,9 @@ void App::run() {
         camera.getProjectionMatrix(),
     };
 
+    // ensure its bounded
     cameraUniformBuffer.bindToPoint(1);
+    // Upload light data to GPU
     cameraUniformBuffer.uploadData(&cameraBlock, sizeof(CameraBlock));
 
     renderAll(registry, shader.getUniformLocation("model"));

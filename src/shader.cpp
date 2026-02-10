@@ -90,7 +90,8 @@ unsigned int Shader::getUniformLocation(const std::string &name) {
 
 void Shader::bindUniformBlock(const std::string &name,
                               unsigned int bindingPoint) {
-  unsigned int blockIndex = glGetUniformBlockIndex(currentShaderProgram, name.c_str());
+  unsigned int blockIndex =
+      glGetUniformBlockIndex(currentShaderProgram, name.c_str());
   if (blockIndex != GL_INVALID_INDEX) {
     glUniformBlockBinding(currentShaderProgram, blockIndex, bindingPoint);
   } else {

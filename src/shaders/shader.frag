@@ -8,9 +8,6 @@ in vec3 FaceNormal;
 
 uniform sampler2D ourTexture;
 
-// Global light intensity multiplier (set via C++ to make scene brighter)
-uniform float lightIntensity = 10.0;
-
 // we need this to be avalable compile time as we need to
 // set the lize of the lights array in LightBlock
 #define MAX_LIGHTS 128
