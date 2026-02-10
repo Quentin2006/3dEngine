@@ -4,14 +4,14 @@ layout(location = 1) in vec2 aTexCoord;
 layout(location = 2) in vec3 aNormal;
 
 uniform mat4 model;
+// layout(std140) uniform CameraBlock {
 uniform mat4 view;
 uniform mat4 projection;
+// } cameraBlock;
 
 out vec3 FaceNormal;
 out vec3 FragPos;
 out vec2 TexCoord;
-
-vec3 lightPos = vec3(0.0, 400.0, 1.0);
 
 void main()
 {

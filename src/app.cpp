@@ -1,4 +1,5 @@
 #include "app.h"
+#include "ecs/components.h"
 #include "ecs/systems.h"
 #include "resource_manager.h"
 #include "uniformBuffer.h"
@@ -73,6 +74,17 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   }
 }
 
+ObjectConfig createLightObj(glm::vec3 &pos, glm::vec3 color,
+                            SineAnimator &sine) {
+
+  return {
+      .mesh = {"assets/3d-cubes/", "cube.obj"},
+      .transform = {pos, {0, 0, 0}, {0.25, 0.25, 0.25}},
+      .light = {color, 10.0f},
+      .sineAnim = sine,
+  };
+}
+
 void App::run() {
   // get uniform location, now that the shader exists, we can find the ID
   shader.addUniform("model");
@@ -80,25 +92,18 @@ void App::run() {
   shader.addUniform("projection");
   shader.addUniform("ourTexture");
 
-  // Add light intensity uniform with default value of 10.0
-  shader.addUniform("lightIntensity");
-  glUniform1f(shader.getUniformLocation("lightIntensity"), 10.0f);
-
-  // Bind the shader's LightBlock uniform block to binding point 0
-  // This connects the shader's uniform block to the UBO at binding point 0
+  // bind uniforms to shader
   shader.bindUniformBlock("LightBlock", 0);
+  shader.bindUniformBlock("cameraBlock", 1);
 
-  // Bind light uniform buffer to binding point 0
-  // This makes the buffer data available at binding point 0
   lightUniformBuffer.bindToPoint(0);
+  cameraUniformBuffer.bindToPoint(1);
 
-  const std::vector<ObjectConfig> objectConfigs = {
-      // Human pedestrian in street center
+  std::vector<ObjectConfig> objectConfigs = {
       {.mesh = {"assets/human/", "FinalBaseMesh.obj"},
-       .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
+       .transform = {{0, -10, 0}, {0, 0, 0}, {1, 1, 1}},
        .rotationAnim = {{0, 1, 0}, 30}},
 
-      // Cars forming a street (4 cars in two rows)
       {
           .mesh = {"assets/Car/", "Car.obj"},
           .transform = {{-8, 0, -5}, {0, 90, 0}, {.1, .1, .1}},
@@ -116,116 +121,23 @@ void App::run() {
           .transform = {{8, 0, 5}, {0, -90, 0}, {.1, .1, .1}},
       },
 
-      // Cyberpunk neon lights overhead - Row 1 (Cyan)
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-6, 8, -8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{0, 1, 1}, 3.0f},
-          .sineAnim = {{0, 1, 1}, .03, 2, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-2, 8, -8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{0, 1, 1}, 3.0f},
-          .sineAnim = {{0, 1, 1}, .03, 1.5, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{2, 8, -8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{0, 1, 1}, 3.0f},
-          .sineAnim = {{0, 1, 1}, .03, 2.5, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{6, 8, -8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{0, 1, 1}, 3.0f},
-          .sineAnim = {{0, 1, 1}, .03, 1.8, 1},
-      },
-
-      // Row 2 (Magenta)
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-6, 10, -3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{1, 0, 1}, 3.0f},
-          .sineAnim = {{1, 0, 1}, .025, 2, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-2, 10, -3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{1, 0, 1}, 3.0f},
-          .sineAnim = {{1, 0, 1}, .025, 1.5, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{2, 10, -3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{1, 0, 1}, 3.0f},
-          .sineAnim = {{1, 0, 1}, .025, 2.5, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{6, 10, -3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{1, 0, 1}, 3.0f},
-          .sineAnim = {{1, 0, 1}, .025, 1.8, 1},
-      },
-
-      // Row 3 (Hot Pink)
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-6, 10, 3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{1, 0, 0.5}, 2.5f},
-          .sineAnim = {{1, 0, 0.5}, .035, 2, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-2, 10, 3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{1, 0, 0.5}, 2.5f},
-          .sineAnim = {{1, 0, 0.5}, .035, 1.5, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{2, 10, 3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{1, 0, 0.5}, 2.5f},
-          .sineAnim = {{1, 0, 0.5}, .035, 2.5, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{6, 10, 3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{1, 0, 0.5}, 2.5f},
-          .sineAnim = {{1, 0, 0.5}, .035, 1.8, 1},
-      },
-
-      // Row 4 (Electric Blue)
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-6, 8, 8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{0, 0.5, 1}, 3.0f},
-          .sineAnim = {{0, 0.5, 1}, .02, 2, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-2, 8, 8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{0, 0.5, 1}, 3.0f},
-          .sineAnim = {{0, 0.5, 1}, .02, 1.5, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{2, 8, 8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{0, 0.5, 1}, 3.0f},
-          .sineAnim = {{0, 0.5, 1}, .02, 2.5, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{6, 8, 8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
-          .light = {{0, 0.5, 1}, 3.0f},
-          .sineAnim = {{0, 0.5, 1}, .02, 1.8, 1},
-      },
-
-      // Wolf guardian at end of street
       {
           .mesh = {"assets/wolf/", "Wolf_obj.obj"},
           .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
       },
   };
+
+  for (int i = 1; i <= 5; ++i) {
+    glm::vec3 pos = {1, 0, 0};
+    glm::vec3 color = {1, 0, 1};
+    glm::vec3 axis = {1, 1, 1};
+    float amplitude = .001;
+    float frequency = 1;
+    float phase = i % 10;
+    SineAnimator sine = {axis, amplitude, frequency, phase};
+
+    objectConfigs.push_back(createLightObj(pos, color, sine));
+  }
 
   for (const auto &cfg : objectConfigs) {
     loadObjectFromConfig(cfg);
@@ -263,8 +175,8 @@ void App::run() {
         auto &light = lightOpt.value();
         auto &pos = registry.getTransform(i).position;
         lightBlock.lights[lightBlock.count].position = pos;
-        lightBlock.lights[lightBlock.count].color =
-            light.color * light.intensity;
+        lightBlock.lights[lightBlock.count].color = light.color;
+        lightBlock.lights[lightBlock.count].intensity = light.intensity;
         lightBlock.count++;
       }
     }
@@ -273,6 +185,14 @@ void App::run() {
     lightUniformBuffer.bindToPoint(0);
     // Upload light data to GPU
     lightUniformBuffer.uploadData(&lightBlock, sizeof(LightBlock));
+
+    CameraBlock cameraBlock{
+        camera.getViewMatrix(),
+        camera.getProjectionMatrix(),
+    };
+
+    cameraUniformBuffer.bindToPoint(1);
+    cameraUniformBuffer.uploadData(&cameraBlock, sizeof(CameraBlock));
 
     renderAll(registry, shader.getUniformLocation("model"));
 

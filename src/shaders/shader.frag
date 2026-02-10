@@ -11,20 +11,18 @@ uniform sampler2D ourTexture;
 // Global light intensity multiplier (set via C++ to make scene brighter)
 uniform float lightIntensity = 10.0;
 
-// Maximum number of lights
-#define MAX_LIGHTS 32
+// we need this to be avalable compile time as we need to
+// set the lize of the lights array in LightBlock
+#define MAX_LIGHTS 128
 
-// Light structure - must match C++ LightData with std140 alignment
-// In std140, vec3 has 16-byte alignment (padded)
 struct Light {
   vec3 position;
   vec3 color;
+  float intensity;
 };
 
-// Uniform block for lights using std140 layout
-// Binding point is set via glUniformBlockBinding() in C++ (OpenGL 3.3 compatible)
 layout(std140) uniform LightBlock {
-  Light lights[MAX_LIGHTS]; // Array of structs to match C++
+  Light lights[MAX_LIGHTS];
   int count;
 } lightBlock;
 
@@ -57,7 +55,7 @@ void main()
     vec3 diffuseColor = diff * lightBlock.lights[i].color * attenuation;
 
     // Add contribution from this light with global intensity multiplier
-    finalColor += (ambientColor + diffuseColor) * lightIntensity * texColor.rgb;
+    finalColor += (ambientColor + diffuseColor) * lightBlock.lights[i].intensity * texColor.rgb;
   }
 
   // If no lights, just show texture

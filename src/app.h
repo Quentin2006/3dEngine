@@ -77,6 +77,7 @@ private:
   ResourceManager resourceManager;
   Registry registry;
   UniformBuffer lightUniformBuffer;
+  UniformBuffer cameraUniformBuffer;
 };
 
 inline void key_callback(GLFWwindow *window, int key, int, int action, int) {
