@@ -12,7 +12,7 @@ uniform sampler2D ourTexture;
 uniform float lightIntensity = 10.0;
 
 // Maximum number of lights
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 32
 
 // Light structure - must match C++ LightData with std140 alignment
 // In std140, vec3 has 16-byte alignment (padded)

@@ -21,7 +21,7 @@ void fps(float deltaTime) {
   fpsTimer += deltaTime;
 
   if (fpsTimer >= 1) {
-    // std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
+    std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
     fpsTimer = 0;
   }
 }
@@ -38,7 +38,7 @@ App::App(int width, int height, const std::string &title)
 
   // CONFIG
   glViewport(0, 0, window.getWidth(), window.getHeight());
-  glClearColor(0, 0, .1f, 1.f);
+  glClearColor(0.02f, 0.02f, 0.05f, 1.f);
   glEnable(GL_DEPTH_TEST);
 
   // Face culling - skip rendering inside faces
@@ -93,54 +93,137 @@ void App::run() {
   lightUniformBuffer.bindToPoint(0);
 
   const std::vector<ObjectConfig> objectConfigs = {
+      // Human pedestrian in street center
       {.mesh = {"assets/human/", "FinalBaseMesh.obj"},
+       .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
        .rotationAnim = {{0, 1, 0}, 30}},
 
+      // Cars forming a street (4 cars in two rows)
       {
           .mesh = {"assets/Car/", "Car.obj"},
-          .transform = {{10, 0, 10}, {0, 0, 0}, {.1, .1, .1}},
+          .transform = {{-8, 0, -5}, {0, 90, 0}, {.1, .1, .1}},
+      },
+      {
+          .mesh = {"assets/Car/", "Car.obj"},
+          .transform = {{8, 0, -5}, {0, -90, 0}, {.1, .1, .1}},
+      },
+      {
+          .mesh = {"assets/Car/", "Car.obj"},
+          .transform = {{-8, 0, 5}, {0, 90, 0}, {.1, .1, .1}},
+      },
+      {
+          .mesh = {"assets/Car/", "Car.obj"},
+          .transform = {{8, 0, 5}, {0, -90, 0}, {.1, .1, .1}},
       },
 
+      // Cyberpunk neon lights overhead - Row 1 (Cyan)
       {
           .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{1, 0, 0}, 1.0f},
-          .sineAnim = {{1, 0, 0}, .01, 2, 1},
+          .transform = {{-6, 8, -8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{0, 1, 1}, 3.0f},
+          .sineAnim = {{0, 1, 1}, .03, 2, 1},
       },
       {
           .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{0, 1, 0}, 1.0f},
-          .sineAnim = {{0, 1, 0}, .01, 1.5, 1},
+          .transform = {{-2, 8, -8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{0, 1, 1}, 3.0f},
+          .sineAnim = {{0, 1, 1}, .03, 1.5, 1},
       },
       {
           .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{0, 0, 1}, 1.0f},
-          .sineAnim = {{0, 0, 1}, .01, 1.0, 1},
+          .transform = {{2, 8, -8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{0, 1, 1}, 3.0f},
+          .sineAnim = {{0, 1, 1}, .03, 2.5, 1},
       },
       {
           .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{1, 0, 1}, 1.0f},
-          .sineAnim = {{1, 0, 1}, .01, 2, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{0, 1, 1}, 1.0f},
-          .sineAnim = {{0, 1, 1}, .01, 1.5, 1},
-      },
-      {
-          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{1, 1, 0}, 1.0f},
-          .sineAnim = {{1, 1, 0}, .01, 1.0, 1},
+          .transform = {{6, 8, -8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{0, 1, 1}, 3.0f},
+          .sineAnim = {{0, 1, 1}, .03, 1.8, 1},
       },
 
+      // Row 2 (Magenta)
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-6, 10, -3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{1, 0, 1}, 3.0f},
+          .sineAnim = {{1, 0, 1}, .025, 2, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-2, 10, -3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{1, 0, 1}, 3.0f},
+          .sineAnim = {{1, 0, 1}, .025, 1.5, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{2, 10, -3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{1, 0, 1}, 3.0f},
+          .sineAnim = {{1, 0, 1}, .025, 2.5, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{6, 10, -3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{1, 0, 1}, 3.0f},
+          .sineAnim = {{1, 0, 1}, .025, 1.8, 1},
+      },
+
+      // Row 3 (Hot Pink)
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-6, 10, 3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{1, 0, 0.5}, 2.5f},
+          .sineAnim = {{1, 0, 0.5}, .035, 2, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-2, 10, 3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{1, 0, 0.5}, 2.5f},
+          .sineAnim = {{1, 0, 0.5}, .035, 1.5, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{2, 10, 3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{1, 0, 0.5}, 2.5f},
+          .sineAnim = {{1, 0, 0.5}, .035, 2.5, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{6, 10, 3}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{1, 0, 0.5}, 2.5f},
+          .sineAnim = {{1, 0, 0.5}, .035, 1.8, 1},
+      },
+
+      // Row 4 (Electric Blue)
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-6, 8, 8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{0, 0.5, 1}, 3.0f},
+          .sineAnim = {{0, 0.5, 1}, .02, 2, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-2, 8, 8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{0, 0.5, 1}, 3.0f},
+          .sineAnim = {{0, 0.5, 1}, .02, 1.5, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{2, 8, 8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{0, 0.5, 1}, 3.0f},
+          .sineAnim = {{0, 0.5, 1}, .02, 2.5, 1},
+      },
+      {
+          .mesh = {"assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{6, 8, 8}, {0, 0, 0}, {0.25, 0.25, 0.25}},
+          .light = {{0, 0.5, 1}, 3.0f},
+          .sineAnim = {{0, 0.5, 1}, .02, 1.8, 1},
+      },
+
+      // Wolf guardian at end of street
       {
           .mesh = {"assets/wolf/", "Wolf_obj.obj"},
-          .transform = {{10, 5, 1}, {0, 0, 0}, {2, 2, 2}},
+          .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
       },
   };
 

@@ -4,7 +4,7 @@
 #include <glm/ext/vector_float3.hpp>
 
 // Maximum number of lights supported
-constexpr int MAX_LIGHTS = 8;
+constexpr int MAX_LIGHTS = 32;
 
 // Light data structure aligned for std140 layout
 // std140 requires vec3 to be aligned to 16 bytes (4 floats)
