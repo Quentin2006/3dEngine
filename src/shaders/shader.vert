@@ -23,5 +23,4 @@ void main()
   TexCoord = aTexCoord;
 
   gl_Position = cameraBlock.projection * cameraBlock.view * vec4(FragPos, 1.0);
-  // gl_Position = vec4(FragPos, 1.0);
 }
