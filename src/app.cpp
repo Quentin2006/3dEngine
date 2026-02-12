@@ -79,7 +79,7 @@ ObjectConfig createLightObj(glm::vec3 &pos, glm::vec3 color,
   return {
       .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube.obj"},
       .transform = {pos, {0, 0, 0}, {0.25, 0.25, 0.25}},
-      .light = {color, 1.0f},
+      .light = {color, 10.0f},
       .sineAnim = sine,
   };
 }
