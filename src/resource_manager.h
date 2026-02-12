@@ -13,7 +13,8 @@ public:
 
   // Load mesh from file, returns cached copy if already loaded
   std::shared_ptr<Mesh> loadMesh(const std::string &path,
-                                 const std::string &filename);
+                                 const std::string &filename,
+                                 unsigned int textureUniform = 0);
 
 private:
   std::unordered_map<std::string, std::weak_ptr<Mesh>> meshCache;

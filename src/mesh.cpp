@@ -12,7 +12,8 @@
 
 #include <iostream>
 
-Mesh::Mesh() : buffer(), vertexCount(0), texture(0) {
+Mesh::Mesh(unsigned int textureUniform)
+    : buffer(), vertexCount(0), texture(textureUniform) {
   // Create default white texture (1x1 pixel)
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);

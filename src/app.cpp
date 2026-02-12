@@ -29,7 +29,7 @@ void fps(float deltaTime) {
 
 App::App(int width, int height, const std::string &title)
     : window(width, height, title), shader(),
-      camera(45.f, width, height, 0.1f, 1000.f), frameCounter(0) {
+      camera(45.f, width, height, 0.1f, 100000.f), frameCounter(0) {
   if (!gladLoadGLLoader((void *(*)(const char *))glfwGetProcAddress)) {
     std::cerr << "Failed to initialize GLAD" << std::endl;
     exit(-1);
@@ -73,17 +73,6 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   }
 }
 
-ObjectConfig createLightObj(glm::vec3 &pos, glm::vec3 color,
-                            SineAnimator &sine) {
-
-  return {
-      .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube.obj"},
-      .transform = {pos, {0, 0, 0}, {0.25, 0.25, 0.25}},
-      .light = {color, 10.0f},
-      .sineAnim = sine,
-  };
-}
-
 void App::run() {
   // get uniform location, now that the shader exists, we can find the ID
   shader.addUniform("model");
@@ -97,52 +86,21 @@ void App::run() {
   cameraUniformBuffer.bindToPoint(1);
 
   std::vector<ObjectConfig> objectConfigs = {
-      // {.mesh = {"../../Sync/3dEngine-assets/human/", "FinalBaseMesh.obj"},
-      //  .transform = {{0, -10, 0}, {0, 0, 0}, {1, 1, 1}},
-      //  .rotationAnim = {{0, 1, 0}, 30}},
-      //
-      // {
-      //     .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
-      //     .transform = {{-8, 0, -5}, {0, 90, 0}, {.1, .1, .1}},
-      // },
-      // {
-      //     .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
-      //     .transform = {{8, 0, -5}, {0, -90, 0}, {.1, .1, .1}},
-      // },
-      // {
-      //     .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
-      //     .transform = {{-8, 0, 5}, {0, 90, 0}, {.1, .1, .1}},
-      // },
-      // {
-      //     .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
-      //     .transform = {{8, 0, 5}, {0, -90, 0}, {.1, .1, .1}},
-      // },
-      //
-      // {
-      //     .mesh = {"../../Sync/3dEngine-assets/wolf/", "Wolf_obj.obj"},
-      //     .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
-      // },
+      // TEST SCENE
       {
           .mesh = {"../../Sync/3dEngine-assets/cottage/", "cottage_obj.obj"},
-          .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
+          .transform = {{0, -20, 0}, {0, 0, 0}, {1, 1, 1}},
       },
-      // {
-      //     .mesh = {"../../Sync/3dEngine-assets/bugatti/", "bugatti.obj"},
-      //     .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
-      // },
-  };
-
-  for (int i = 1; i <= 5; ++i) {
-    glm::vec3 pos = {1, 10, 0};
-    glm::vec3 color = {1, 0, 1};
-    glm::vec3 axis = {1, 1, 1};
-    float amplitude = .001;
-    float frequency = 1;
-    float phase = i % 10;
-    SineAnimator sine = {axis, amplitude, frequency, phase};
-
-    objectConfigs.push_back(createLightObj(pos, color, sine));
-  }
+      // SUN
+      {
+          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{0, 1000, 1000}, {0, 0, 0}, {100, 100, 100}},
+          .light = {{1, 1, 1}, 1000000.0f},
+      },
+      {
+          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{0, 10, 10}, {0, 0, 0}, {1, 1, 1}},
+      }};
 
   for (const auto &cfg : objectConfigs) {
     loadObjectFromConfig(cfg);
@@ -200,7 +158,6 @@ void App::run() {
     cameraUniformBuffer.uploadData(&cameraBlock, sizeof(CameraBlock));
 
     renderAll(registry, shader.getUniformLocation("model"));
-
     window.swapBuffers();
   }
 

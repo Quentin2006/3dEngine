@@ -11,7 +11,7 @@ struct subMesh {
 
 class Mesh {
 public:
-  Mesh();
+  Mesh(unsigned int textureUniform = 0);
 
   // Prevent copying (vertexBuffer is immobile)
   Mesh(const Mesh &) = delete;
