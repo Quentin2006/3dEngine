@@ -77,7 +77,7 @@ ObjectConfig createLightObj(glm::vec3 &pos, glm::vec3 color,
                             SineAnimator &sine) {
 
   return {
-      .mesh = {"~/Sync/3dEngine-assets/3d-cubes/", "cube.obj"},
+      .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube.obj"},
       .transform = {pos, {0, 0, 0}, {0.25, 0.25, 0.25}},
       .light = {color, 1.0f},
       .sineAnim = sine,
@@ -97,37 +97,37 @@ void App::run() {
   cameraUniformBuffer.bindToPoint(1);
 
   std::vector<ObjectConfig> objectConfigs = {
-      // {.mesh = {"~/Sync/3dEngine-assets/human/", "FinalBaseMesh.obj"},
+      // {.mesh = {"../../Sync/3dEngine-assets/human/", "FinalBaseMesh.obj"},
       //  .transform = {{0, -10, 0}, {0, 0, 0}, {1, 1, 1}},
       //  .rotationAnim = {{0, 1, 0}, 30}},
       //
       // {
-      //     .mesh = {"~/Sync/3dEngine-assets/Car/", "Car.obj"},
+      //     .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
       //     .transform = {{-8, 0, -5}, {0, 90, 0}, {.1, .1, .1}},
       // },
       // {
-      //     .mesh = {"~/Sync/3dEngine-assets/Car/", "Car.obj"},
+      //     .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
       //     .transform = {{8, 0, -5}, {0, -90, 0}, {.1, .1, .1}},
       // },
       // {
-      //     .mesh = {"~/Sync/3dEngine-assets/Car/", "Car.obj"},
+      //     .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
       //     .transform = {{-8, 0, 5}, {0, 90, 0}, {.1, .1, .1}},
       // },
       // {
-      //     .mesh = {"~/Sync/3dEngine-assets/Car/", "Car.obj"},
+      //     .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
       //     .transform = {{8, 0, 5}, {0, -90, 0}, {.1, .1, .1}},
       // },
       //
       // {
-      //     .mesh = {"~/Sync/3dEngine-assets/wolf/", "Wolf_obj.obj"},
+      //     .mesh = {"../../Sync/3dEngine-assets/wolf/", "Wolf_obj.obj"},
       //     .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
       // },
       {
-          .mesh = {"~/Sync/3dEngine-assets/cottage/", "cottage_obj.obj"},
+          .mesh = {"../../Sync/3dEngine-assets/cottage/", "cottage_obj.obj"},
           .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
       },
       // {
-      //     .mesh = {"~/Sync/3dEngine-assets/bugatti/", "bugatti.obj"},
+      //     .mesh = {"../../Sync/3dEngine-assets/bugatti/", "bugatti.obj"},
       //     .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
       // },
   };
