@@ -65,7 +65,6 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   if (cfg.light.intensity != 0.f) {
     registry.getLight(obj) = cfg.light;
   }
-
   if (cfg.sineAnim.amplitude != 0.f) {
     registry.getSineAnimator(obj) = cfg.sineAnim;
   }
@@ -80,7 +79,7 @@ ObjectConfig createLightObj(glm::vec3 &pos, glm::vec3 color,
   return {
       .mesh = {"assets/3d-cubes/", "cube.obj"},
       .transform = {pos, {0, 0, 0}, {0.25, 0.25, 0.25}},
-      .light = {color, 10.0f},
+      .light = {color, 1.0f},
       .sineAnim = sine,
   };
 }
@@ -98,35 +97,43 @@ void App::run() {
   cameraUniformBuffer.bindToPoint(1);
 
   std::vector<ObjectConfig> objectConfigs = {
-      {.mesh = {"assets/human/", "FinalBaseMesh.obj"},
-       .transform = {{0, -10, 0}, {0, 0, 0}, {1, 1, 1}},
-       .rotationAnim = {{0, 1, 0}, 30}},
-
+      // {.mesh = {"assets/human/", "FinalBaseMesh.obj"},
+      //  .transform = {{0, -10, 0}, {0, 0, 0}, {1, 1, 1}},
+      //  .rotationAnim = {{0, 1, 0}, 30}},
+      //
+      // {
+      //     .mesh = {"assets/Car/", "Car.obj"},
+      //     .transform = {{-8, 0, -5}, {0, 90, 0}, {.1, .1, .1}},
+      // },
+      // {
+      //     .mesh = {"assets/Car/", "Car.obj"},
+      //     .transform = {{8, 0, -5}, {0, -90, 0}, {.1, .1, .1}},
+      // },
+      // {
+      //     .mesh = {"assets/Car/", "Car.obj"},
+      //     .transform = {{-8, 0, 5}, {0, 90, 0}, {.1, .1, .1}},
+      // },
+      // {
+      //     .mesh = {"assets/Car/", "Car.obj"},
+      //     .transform = {{8, 0, 5}, {0, -90, 0}, {.1, .1, .1}},
+      // },
+      //
+      // {
+      //     .mesh = {"assets/wolf/", "Wolf_obj.obj"},
+      //     .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
+      // },
       {
-          .mesh = {"assets/Car/", "Car.obj"},
-          .transform = {{-8, 0, -5}, {0, 90, 0}, {.1, .1, .1}},
-      },
-      {
-          .mesh = {"assets/Car/", "Car.obj"},
-          .transform = {{8, 0, -5}, {0, -90, 0}, {.1, .1, .1}},
-      },
-      {
-          .mesh = {"assets/Car/", "Car.obj"},
-          .transform = {{-8, 0, 5}, {0, 90, 0}, {.1, .1, .1}},
-      },
-      {
-          .mesh = {"assets/Car/", "Car.obj"},
-          .transform = {{8, 0, 5}, {0, -90, 0}, {.1, .1, .1}},
-      },
-
-      {
-          .mesh = {"assets/wolf/", "Wolf_obj.obj"},
+          .mesh = {"assets/cottage/", "cottage_obj.obj"},
           .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
       },
+      // {
+      //     .mesh = {"assets/bugatti/", "bugatti.obj"},
+      //     .transform = {{0, 3, -15}, {0, 0, 0}, {2, 2, 2}},
+      // },
   };
 
   for (int i = 1; i <= 5; ++i) {
-    glm::vec3 pos = {1, 0, 0};
+    glm::vec3 pos = {1, 10, 0};
     glm::vec3 color = {1, 0, 1};
     glm::vec3 axis = {1, 1, 1};
     float amplitude = .001;

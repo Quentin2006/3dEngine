@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+struct subMesh {
+  std::vector<Vertex> vertices;
+  unsigned int texture;
+};
+
 class Mesh {
 public:
   Mesh();
@@ -16,7 +21,7 @@ public:
   void draw();
 
   // Load mesh from OBJ file
-  int loadObj(const std::string &assetsPath, const std::string &objName);
+  int loadObj(const std::string &assetsPath, const std::string &objFileName);
 
   // Getters
   size_t getVertexCount() const { return vertexCount; }

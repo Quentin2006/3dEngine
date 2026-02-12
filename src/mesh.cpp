@@ -70,11 +70,11 @@ void Mesh::setTexture(const std::string &path) {
   stbi_image_free(data);
 }
 
-int Mesh::loadObj(const std::string &filePath, const std::string &objName) {
+int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
   tinyobj::ObjReader reader;
   tinyobj::ObjReaderConfig readerConfig;
 
-  if (!reader.ParseFromFile(filePath + objName, readerConfig)) {
+  if (!reader.ParseFromFile(filePath + objFileName, readerConfig)) {
     if (!reader.Error().empty()) {
       std::cerr << "TinyObjReader: " << reader.Error() << std::endl;
     }
