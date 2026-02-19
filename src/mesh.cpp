@@ -9,6 +9,7 @@
 #include <glm/ext/vector_float2.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/fwd.hpp>
+#include <glm/geometric.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/trigonometric.hpp>
@@ -192,7 +193,20 @@ int Mesh::loadSweep(const std::vector<glm::vec3> &points, const size_t res,
     std::vector<glm::vec3> translated_circle(res);
     // go though each point in cricles_point
     for (int j = 0; j < (int)circle_points.size(); ++j) {
-      translated_circle[j] = circle_points[j] + points[i];
+      glm::vec3 tangent;
+      if (i == 0) {
+        tangent = glm::normalize(points[i + 1] - points[i]);
+      } else if (i == (int)points.size() - 1) {
+        tangent = glm::normalize(points[i] - points[i - 1]);
+      } else {
+        tangent = glm::normalize(points[i + 1] - points[i - 1]);
+      }
+      glm::vec3 span = glm::normalize(cross(tangent, {0, 1, 0}));
+      glm::vec3 normal = glm::normalize(cross(span, tangent));
+
+      glm::mat3 basis(normal, tangent, span);
+
+      translated_circle[j] = basis * circle_points[j] + points[i];
     }
     circles[i] = translated_circle;
   }
@@ -212,8 +226,8 @@ int Mesh::loadSweep(const std::vector<glm::vec3> &points, const size_t res,
       glm::vec3 edge2 = p2 - p0;
       glm::vec3 normal1 = glm::normalize(glm::cross(edge1, edge2));
 
-      vertices.push_back({p0, glm::vec2(0.0f), normal1});
       vertices.push_back({p1, glm::vec2(0.0f), normal1});
+      vertices.push_back({p0, glm::vec2(0.0f), normal1});
       vertices.push_back({p2, glm::vec2(0.0f), normal1});
 
       // Triangle 2: p0, p2, p3
@@ -221,8 +235,8 @@ int Mesh::loadSweep(const std::vector<glm::vec3> &points, const size_t res,
       glm::vec3 edge4 = p3 - p0;
       glm::vec3 normal2 = glm::normalize(glm::cross(edge3, edge4));
 
-      vertices.push_back({p0, glm::vec2(0.0f), normal2});
       vertices.push_back({p2, glm::vec2(0.0f), normal2});
+      vertices.push_back({p0, glm::vec2(0.0f), normal2});
       vertices.push_back({p3, glm::vec2(0.0f), normal2});
     }
   }
