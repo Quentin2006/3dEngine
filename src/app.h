@@ -23,11 +23,13 @@ struct InputState {
 };
 
 struct ObjectConfig {
+  MeshComp meshObj{nullptr};
   MeshPath mesh{"", ""};
   Transform transform{{0, 0, 0}, {0, 0, 0}, {1, 1, 1}};
   Light light{{0, 0, 0}, 0.f};
   SineAnimator sineAnim{{0, 0, 0}, 0.f, 0.f, 0.f};
   RotationAnimator rotationAnim{{0, 0, 0}, 0.f};
+  Sweep sweep{{}, 0, 0};
 };
 
 struct Controls {

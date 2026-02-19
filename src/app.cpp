@@ -10,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <ostream>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
@@ -57,8 +58,16 @@ App::App(int width, int height, const std::string &title)
 void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   int obj = registry.createEntity();
 
-  registry.getMesh(obj).mesh =
-      resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
+  // Get the verts
+  if (!cfg.mesh.path.empty()) {
+    registry.getMesh(obj).mesh =
+        resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
+  } else if (!cfg.sweep.points.empty()) {
+    registry.getMesh(obj).mesh = resourceManager.loadMesh(
+        cfg.sweep.points, cfg.sweep.resolution, cfg.sweep.radius);
+  } else {
+    std::cerr << "Error loading object" << std::endl;
+  }
 
   registry.getTransform(obj) = cfg.transform;
 
@@ -86,18 +95,9 @@ void App::run() {
   cameraUniformBuffer.bindToPoint(1);
 
   std::vector<ObjectConfig> objectConfigs = {
-      // TEST SCENE
-      {
-          .mesh = {"../../Sync/3dEngine-assets/cottage/", "cottage_obj.obj"},
-          .transform = {{0, -20, 0}, {0, 0, 0}, {1, 1, 1}},
-      },
-      // SUN - commented out for now
-      // {
-      //     .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-      //     .transform = {{0, 1000, 1000}, {0, 0, 0}, {100, 100, 100}},
-      //     .light = {{1, 1, 1}, 1000000.0f},
-      // },
-      // Orbiting lights around the scene
+
+      {.sweep = {{{1, 1, 1}, {10, 10, 10}, {100, 3, 100}}, 2, 10}},
+
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{40, 10, 0}, {0, 0, 0}, {1, 1, 1}},
@@ -122,30 +122,6 @@ void App::run() {
           .light = {{1, 1, 0}, 500.0f},
           .rotationAnim = {{0, 1, 0}, 30.0f}, // orbit around Y axis
       },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{30, 25, 30}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{1, 0, 1}, 500.0f},
-          .rotationAnim = {{0, 1, 0}, 30.0f}, // orbit around Y axis
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{30, 25, -30}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{0, 1, 1}, 500.0f},
-          .rotationAnim = {{0, 1, 0}, 30.0f}, // orbit around Y axis
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-30, 25, 30}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{1, 0.5f, 0}, 500.0f},
-          .rotationAnim = {{0, 1, 0}, 30.0f}, // orbit around Y axis
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-30, 25, -30}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{0.5f, 0, 1}, 500.0f},
-          .rotationAnim = {{0, 1, 0}, 30.0f}, // orbit around Y axis
-      },
   };
 
   for (const auto &cfg : objectConfigs) {
@@ -161,7 +137,7 @@ void App::run() {
         std::chrono::duration<float>(currentTime - prevTime).count();
     prevTime = currentTime;
     totalTime += deltaTime;
-    fps(deltaTime);
+    // fps(deltaTime);
 
     // clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -2,7 +2,17 @@
 #include "../include/glad/glad.h"
 #include "vertexBuffer.h"
 
+#include <cmath>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/quaternion_transform.hpp>
+#include <glm/ext/quaternion_trigonometric.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/trigonometric.hpp>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../include/stb/stb_image.h"
@@ -166,4 +176,73 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
   buffer.uploadVertices(vertices);
   vertexCount = vertices.size();
   return vertexCount;
+}
+
+int Mesh::loadSweep(const std::vector<glm::vec3> &points, const size_t res,
+                    const float radius) {
+  std::vector<glm::vec3> circle_points = generateCircle(res, radius);
+
+  // circles[i] corresponds to the circle centered at points[i]
+  std::vector<std::vector<glm::vec3>> circles(points.size());
+
+  // want to translate the vec3's to be centered around the points
+
+  // go thoguh each point
+  for (int i = 0; i < (int)points.size(); ++i) {
+    std::vector<glm::vec3> translated_circle(res);
+    // go though each point in cricles_point
+    for (int j = 0; j < (int)circle_points.size(); ++j) {
+      translated_circle[j] = circle_points[j] + points[i];
+    }
+    circles[i] = translated_circle;
+  }
+
+  // connect the circles and create the tris
+  for (int i = 1; i < (int)circles.size(); ++i) {
+    for (int j = 0; j < (int)res; ++j) {
+      int next_j = (j + 1) % res;
+
+      glm::vec3 p0 = circles[i - 1][j];
+      glm::vec3 p1 = circles[i][j];
+      glm::vec3 p2 = circles[i][next_j];
+      glm::vec3 p3 = circles[i - 1][next_j];
+
+      // Triangle 1: p0, p1, p2
+      glm::vec3 edge1 = p1 - p0;
+      glm::vec3 edge2 = p2 - p0;
+      glm::vec3 normal1 = glm::normalize(glm::cross(edge1, edge2));
+
+      vertices.push_back({p0, glm::vec2(0.0f), normal1});
+      vertices.push_back({p1, glm::vec2(0.0f), normal1});
+      vertices.push_back({p2, glm::vec2(0.0f), normal1});
+
+      // Triangle 2: p0, p2, p3
+      glm::vec3 edge3 = p2 - p0;
+      glm::vec3 edge4 = p3 - p0;
+      glm::vec3 normal2 = glm::normalize(glm::cross(edge3, edge4));
+
+      vertices.push_back({p0, glm::vec2(0.0f), normal2});
+      vertices.push_back({p2, glm::vec2(0.0f), normal2});
+      vertices.push_back({p3, glm::vec2(0.0f), normal2});
+    }
+  }
+
+  buffer.uploadVertices(vertices);
+  vertexCount = vertices.size();
+  return vertexCount;
+}
+
+const std::vector<glm::vec3> Mesh::generateCircle(int res, float radius) {
+  std::vector<glm::vec3> circle_points(res);
+
+  // We want to go 360/res points from the circle untill we hit 360
+  float cur_degree = 0;
+  for (auto &point : circle_points) {
+    point = glm::vec3(cos(glm::radians(cur_degree)) * radius, 0,
+                      sin(glm::radians(cur_degree)) * radius);
+
+    cur_degree += 360.f / res;
+  }
+
+  return circle_points;
 }

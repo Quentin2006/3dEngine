@@ -3,16 +3,12 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 class Mesh;
 
 struct MeshComp {
   std::shared_ptr<Mesh> mesh;
-};
-
-struct MeshPath {
-  std::string path;
-  std::string name;
 };
 
 struct Transform {
@@ -37,4 +33,16 @@ struct SineAnimator {
 struct RotationAnimator {
   glm::vec3 axis;
   float rpm;
+};
+
+// NOTE: These are used to generate the above
+struct Sweep {
+  std::vector<glm::vec3> points;
+  float radius;
+  int resolution; // # of segments the mesh will have for a circle
+};
+
+struct MeshPath {
+  std::string path;
+  std::string name;
 };

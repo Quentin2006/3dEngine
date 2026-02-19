@@ -1,5 +1,6 @@
 #include "resource_manager.h"
 #include "mesh.h"
+#include <glm/ext/vector_float3.hpp>
 #include <iostream>
 
 std::shared_ptr<Mesh> ResourceManager::loadMesh(const std::string &path,
@@ -26,5 +27,19 @@ std::shared_ptr<Mesh> ResourceManager::loadMesh(const std::string &path,
   }
 
   meshCache[key] = mesh;
+  return mesh;
+}
+
+std::shared_ptr<Mesh>
+ResourceManager::loadMesh(const std::vector<glm::vec3> &verts, int res,
+                          float radius, unsigned int textureUniform) {
+  // Load new mesh
+  auto mesh = std::make_shared<Mesh>(textureUniform);
+  int size = mesh->loadSweep(verts, res, radius);
+  if (size == 0) {
+    std::cerr << "Cannot load mesh with no verts" << std::endl;
+    return nullptr;
+  }
+
   return mesh;
 }
