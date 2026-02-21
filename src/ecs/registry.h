@@ -11,6 +11,7 @@ public:
     lights.push_back({});
     sineAnimators.push_back({});
     rotationAnimators.push_back({});
+    parametricAnimators.push_back({});
     return id;
   }
 
@@ -29,6 +30,9 @@ public:
   std::optional<RotationAnimator> &getRotationAnimator(int entity) {
     return rotationAnimators[entity];
   }
+  std::optional<ParametricAnimator> &getParametricAnimator(int entity) {
+    return parametricAnimators[entity];
+  }
   std::optional<Light> &getLight(int entity) { return lights[entity]; }
 
   size_t entityCount() const { return transforms.size(); }
@@ -43,6 +47,7 @@ private:
   std::vector<std::optional<Light>> lights;
   std::vector<std::optional<SineAnimator>> sineAnimators;
   std::vector<std::optional<RotationAnimator>> rotationAnimators;
+  std::vector<std::optional<ParametricAnimator>> parametricAnimators;
 
   std::vector<int> sparse;
 };

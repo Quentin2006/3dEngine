@@ -35,6 +35,11 @@ struct RotationAnimator {
   float rpm;
 };
 
+struct ParametricAnimator {
+  std::vector<glm::vec3> points;
+  float speed;
+};
+
 // NOTE: These are used to generate the above
 struct Sweep {
   std::vector<glm::vec3> points;

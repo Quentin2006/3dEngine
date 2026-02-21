@@ -80,6 +80,9 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   if (cfg.rotationAnim.rpm != 0.f) {
     registry.getRotationAnimator(obj) = cfg.rotationAnim;
   }
+  if (!cfg.parAnim.points.empty()) {
+    registry.getParametricAnimator(obj) = cfg.parAnim;
+  }
 }
 
 void App::run() {
@@ -96,13 +99,31 @@ void App::run() {
 
   std::vector<ObjectConfig> objectConfigs = {
 
-      {.sweep = {{{1, 1, 1}, {10, 10, 10}, {100, 3, 100}}, 2, 10}},
-
+      {.sweep = {{{0, 5, 0},     // start
+                  {20, 5, 20},   // curve out
+                  {40, 25, 0},   // climb up
+                  {20, 40, -20}, // peak & drop
+                  {0, 20, -40},  // swoop down
+                  {-20, 5, -20}, // valley
+                  {-40, 15, 0},  // rise again
+                  {-20, 30, 20}, // crest
+                  {0, 5, 0}},    // rejoin start (cyclic)
+                 1,
+                 160}},
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{40, 10, 0}, {0, 0, 0}, {1, 1, 1}},
+          .transform = {{0, 0, 0}, {0, 0, 0}, {2, 2, 2}},
           .light = {{1, 0, 0}, 500.0f},
-          .rotationAnim = {{0, 1, 0}, 30.0f}, // orbit around Y axis
+          .parAnim = {{{0, 5, 0},     // start
+                       {20, 5, 20},   // curve out
+                       {40, 25, 0},   // climb up
+                       {20, 40, -20}, // peak & drop
+                       {0, 20, -40},  // swoop down
+                       {-20, 5, -20}, // valley
+                       {-40, 15, 0},  // rise again
+                       {-20, 30, 20}, // crest
+                       {0, 5, 0}},    // rejoin start (cyclic)
+                      1},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},

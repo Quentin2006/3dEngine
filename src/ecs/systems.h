@@ -40,6 +40,18 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
       auto &t = reg.getTransform(i);
       t.rotation += anim.axis * anim.rpm * 6.0f * deltaTime;
     }
+    // NOTE: CHECK PARAMETRIC ANIMATOR
+    auto &parametricOpt = reg.getParametricAnimator(i);
+    if (parametricOpt.has_value()) {
+      // will generate a point given the time
+      auto &anim = parametricOpt.value();
+
+      auto cur_point =
+          anim.points[int(totalTime * anim.speed) % anim.points.size()];
+
+      auto &t = reg.getTransform(i);
+      t.position = cur_point;
+    }
   }
 }
 
