@@ -182,6 +182,8 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
 
 int Mesh::loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
                     int circleSegments, float radius) {
+  if (points.size() < 2) return 0;
+
   // Detect cyclic path: first and last points match
   bool cyclic = glm::length(points.front() - points.back()) < 0.001f;
 
@@ -194,31 +196,44 @@ int Mesh::loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
   // circles[i] corresponds to the circle centered at smoothPath[i]
   std::vector<std::vector<glm::vec3>> circles(smoothPath.size());
 
+  glm::vec3 prevTangent(0, 0, 1);
+
   for (int i = 0; i < (int)smoothPath.size(); ++i) {
+    // Compute tangent once per path point (independent of circle vertex j)
+    glm::vec3 tangentRaw;
+    if (i == 0) {
+      tangentRaw = smoothPath[i + 1] - smoothPath[i];
+    } else if (i == (int)smoothPath.size() - 1) {
+      tangentRaw = smoothPath[i] - smoothPath[i - 1];
+    } else {
+      tangentRaw = smoothPath[i + 1] - smoothPath[i - 1];
+    }
+
+    // Guard against zero-length tangent (duplicate spline samples) to avoid NaN
+    glm::vec3 tangent;
+    float tangentLen = glm::length(tangentRaw);
+    if (tangentLen < 0.0001f) {
+      tangent = prevTangent;
+    } else {
+      tangent = tangentRaw / tangentLen;
+    }
+    prevTangent = tangent;
+
+    // Avoid degenerate case when tangent is parallel to up vector
+    glm::vec3 up(0, 1, 0);
+    if (std::abs(glm::dot(tangent, up)) > 0.99f) {
+      up = glm::vec3(1, 0, 0);
+    }
+
+    glm::vec3 span = glm::normalize(cross(tangent, up));
+    glm::vec3 normal = glm::normalize(cross(span, tangent));
+    glm::mat3 basis(normal, tangent, span);
+
     std::vector<glm::vec3> translated_circle(circleSegments);
     for (int j = 0; j < (int)circle_points.size(); ++j) {
-      glm::vec3 tangent;
-      if (i == 0) {
-        tangent = glm::normalize(smoothPath[i + 1] - smoothPath[i]);
-      } else if (i == (int)smoothPath.size() - 1) {
-        tangent = glm::normalize(smoothPath[i] - smoothPath[i - 1]);
-      } else {
-        tangent = glm::normalize(smoothPath[i + 1] - smoothPath[i - 1]);
-      }
-
-      // Avoid degenerate case when tangent is parallel to up vector
-      glm::vec3 up(0, 1, 0);
-      if (std::abs(glm::dot(tangent, up)) > 0.99f) {
-        up = glm::vec3(1, 0, 0);
-      }
-
-      glm::vec3 span = glm::normalize(cross(tangent, up));
-      glm::vec3 normal = glm::normalize(cross(span, tangent));
-
-      glm::mat3 basis(normal, tangent, span);
       translated_circle[j] = basis * circle_points[j] + smoothPath[i];
     }
-    circles[i] = translated_circle;
+    circles[i] = std::move(translated_circle);
   }
 
   // Connect circles into triangle mesh

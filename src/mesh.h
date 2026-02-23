@@ -24,7 +24,7 @@ public:
   // Load mesh from OBJ file
   int loadObj(const std::string &assetsPath, const std::string &objFileName);
 
-  // loades mesh from sweep config
+  // loads mesh from sweep config
   int loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
                 int circleSegments, float radius);
   // Getters
