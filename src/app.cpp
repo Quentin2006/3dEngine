@@ -105,7 +105,7 @@ void App::run() {
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{1, 1, 1}, 1000.0f},
+          .light = {{1, 1, 1}, 50.0f},
       },
 
       // === ROLLER COASTER TRACK ===
@@ -118,16 +118,16 @@ void App::run() {
                   {-40, 15, 0},  // rise again
                   {-20, 30, 20}, // crest
                   {0, 5, 0}},    // rejoin start (cyclic)
-                  0.4f,           // radius
-                  3000,           // pathSegments
-                  24}},           // circleSegments
+                 0.4f,           // radius
+                 3000,           // pathSegments
+                 24}},           // circleSegments
 
       // === RIDERS ON THE TRACK ===
       // Wolf rider
       {
           .mesh = {"../../Sync/3dEngine-assets/wolf/", "Wolf_obj.obj"},
           .transform = {{0, 6, 0}, {0, 0, 0}, {0.05, 0.05, 0.05}},
-          .light = {{1, 0.5, 0}, 200.0f},
+          .light = {{1, 0.5, 0}, 20.0f},
           .parAnim = {{{0, 5, 0},
                        {20, 5, 20},
                        {40, 25, 0},
@@ -143,7 +143,7 @@ void App::run() {
       {
           .mesh = {"../../Sync/3dEngine-assets/human/", "FinalBaseMesh.obj"},
           .transform = {{0, 6, 0}, {0, 0, 0}, {0.5, 0.5, 0.5}},
-          .light = {{0, 1, 1}, 200.0f},
+          .light = {{0, 1, 1}, 20.0f},
           .parAnim = {{{0, 5, 0},
                        {20, 5, 20},
                        {40, 25, 0},
@@ -159,7 +159,7 @@ void App::run() {
       {
           .mesh = {"../../Sync/3dEngine-assets/bugatti/", "bugatti.obj"},
           .transform = {{0, 6, 0}, {0, 0, 0}, {0.3, 0.3, 0.3}},
-          .light = {{1, 0, 0.5}, 300.0f},
+          .light = {{1, 0, 0.5}, 30.0f},
           .parAnim = {{{0, 5, 0},
                        {20, 5, 20},
                        {40, 25, 0},
@@ -175,7 +175,7 @@ void App::run() {
       {
           .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
           .transform = {{0, 6, 0}, {0, 0, 0}, {0.3, 0.3, 0.3}},
-          .light = {{0, 1, 0}, 300.0f},
+          .light = {{0, 1, 0}, 30.0f},
           .parAnim = {{{0, 5, 0},
                        {20, 5, 20},
                        {40, 25, 0},
@@ -192,63 +192,63 @@ void App::run() {
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{0, 0, 0}, {0, 0, 0}, {0.5, 5, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 50.0f},
+          .light = {{0.5, 0.5, 0.5}, 10.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{20, 0, 20}, {0, 0, 0}, {0.5, 3, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 50.0f},
+          .light = {{0.5, 0.5, 0.5}, 10.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{40, 10, 0}, {0, 0, 0}, {0.5, 8, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 50.0f},
+          .light = {{0.5, 0.5, 0.5}, 10.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{20, 20, -20}, {0, 0, 0}, {0.5, 10, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 50.0f},
+          .light = {{0.5, 0.5, 0.5}, 10.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{-20, 0, -20}, {0, 0, 0}, {0.5, 3, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 50.0f},
+          .light = {{0.5, 0.5, 0.5}, 10.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{-40, 5, 0}, {0, 0, 0}, {0.5, 5, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 50.0f},
+          .light = {{0.5, 0.5, 0.5}, 10.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{-20, 15, 20}, {0, 0, 0}, {0.5, 8, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 50.0f},
+          .light = {{0.5, 0.5, 0.5}, 10.0f},
       },
 
       // === ENVIRONMENT: COTTAGE ===
       {
           .mesh = {"../../Sync/3dEngine-assets/cottage/", "cottage_obj.obj"},
           .transform = {{50, 0, 0}, {0, 45, 0}, {2, 2, 2}},
-          .light = {{1, 0.9, 0.7}, 300.0f},
+          .light = {{1, 0.9, 0.7}, 30.0f},
       },
 
       // === DECORATIVE ANIMATED CUBES ===
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{30, 30, 30}, {0, 0, 0}, {2, 2, 2}},
-          .light = {{1, 0, 1}, 200.0f},
+          .light = {{1, 0, 1}, 20.0f},
           .rotationAnim = {{1, 1, 0}, 20.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{-30, 35, -30}, {0, 0, 0}, {3, 3, 3}},
-          .light = {{0, 1, 1}, 200.0f},
+          .light = {{0, 1, 1}, 20.0f},
           .rotationAnim = {{0, 1, 1}, 15.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{0, 50, 0}, {0, 0, 0}, {1.5, 1.5, 1.5}},
-          .light = {{1, 1, 0}, 200.0f},
+          .light = {{1, 1, 0}, 20.0f},
           .rotationAnim = {{1, 0, 1}, 25.0f},
       },
   };
@@ -309,13 +309,14 @@ void App::run() {
     cameraUniformBuffer.uploadData(&cameraBlock, sizeof(CameraBlock));
 
     // Set camera position for specular lighting
-    glUniform3fv(shader.getUniformLocation("cameraPos"), 1, glm::value_ptr(camera.getPosition()));
+    glUniform3fv(shader.getUniformLocation("cameraPos"), 1,
+                 glm::value_ptr(camera.getPosition()));
 
     shader.use();
     renderAll(registry, shader.getUniformLocation("model"),
-               shader.getUniformLocation("diffuseTexture"),
-               shader.getUniformLocation("specularTexture"),
-               shader.getUniformLocation("shininess"));
+              shader.getUniformLocation("diffuseTexture"),
+              shader.getUniformLocation("specularTexture"),
+              shader.getUniformLocation("shininess"));
     window.swapBuffers();
   }
 
