@@ -1,5 +1,6 @@
 #include "mesh.h"
 #include "../include/glad/glad.h"
+#include "math/spline.h"
 #include "vertexBuffer.h"
 
 #include <cmath>
@@ -179,49 +180,57 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
   return vertexCount;
 }
 
-int Mesh::loadSweep(const std::vector<glm::vec3> &points, const size_t res,
-                    const float radius) {
-  std::vector<glm::vec3> circle_points = generateCircle(res, radius);
+int Mesh::loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
+                    int circleSegments, float radius) {
+  // Detect cyclic path: first and last points match
+  bool cyclic = glm::length(points.front() - points.back()) < 0.001f;
 
-  // circles[i] corresponds to the circle centered at points[i]
-  std::vector<std::vector<glm::vec3>> circles(points.size());
+  // Subdivide control points into a smooth spline path
+  std::vector<glm::vec3> smoothPath =
+      spline::subdivide(points, pathSegments, cyclic);
 
-  // want to translate the vec3's to be centered around the points
+  std::vector<glm::vec3> circle_points = generateCircle(circleSegments, radius);
 
-  // go thoguh each point
-  for (int i = 0; i < (int)points.size(); ++i) {
-    std::vector<glm::vec3> translated_circle(res);
-    // go though each point in cricles_point
+  // circles[i] corresponds to the circle centered at smoothPath[i]
+  std::vector<std::vector<glm::vec3>> circles(smoothPath.size());
+
+  for (int i = 0; i < (int)smoothPath.size(); ++i) {
+    std::vector<glm::vec3> translated_circle(circleSegments);
     for (int j = 0; j < (int)circle_points.size(); ++j) {
       glm::vec3 tangent;
       if (i == 0) {
-        tangent = glm::normalize(points[i + 1] - points[i]);
-      } else if (i == (int)points.size() - 1) {
-        tangent = glm::normalize(points[i] - points[i - 1]);
+        tangent = glm::normalize(smoothPath[i + 1] - smoothPath[i]);
+      } else if (i == (int)smoothPath.size() - 1) {
+        tangent = glm::normalize(smoothPath[i] - smoothPath[i - 1]);
       } else {
-        tangent = glm::normalize(points[i + 1] - points[i - 1]);
+        tangent = glm::normalize(smoothPath[i + 1] - smoothPath[i - 1]);
       }
-      glm::vec3 span = glm::normalize(cross(tangent, {0, 1, 0}));
+
+      // Avoid degenerate case when tangent is parallel to up vector
+      glm::vec3 up(0, 1, 0);
+      if (std::abs(glm::dot(tangent, up)) > 0.99f) {
+        up = glm::vec3(1, 0, 0);
+      }
+
+      glm::vec3 span = glm::normalize(cross(tangent, up));
       glm::vec3 normal = glm::normalize(cross(span, tangent));
 
       glm::mat3 basis(normal, tangent, span);
-
-      translated_circle[j] = basis * circle_points[j] + points[i];
+      translated_circle[j] = basis * circle_points[j] + smoothPath[i];
     }
     circles[i] = translated_circle;
   }
 
-  // connect the circles and create the tris
+  // Connect circles into triangle mesh
   for (int i = 1; i < (int)circles.size(); ++i) {
-    for (int j = 0; j < (int)res; ++j) {
-      int next_j = (j + 1) % res;
+    for (int j = 0; j < circleSegments; ++j) {
+      int next_j = (j + 1) % circleSegments;
 
       glm::vec3 p0 = circles[i - 1][j];
       glm::vec3 p1 = circles[i][j];
       glm::vec3 p2 = circles[i][next_j];
       glm::vec3 p3 = circles[i - 1][next_j];
 
-      // Triangle 1: p0, p1, p2
       glm::vec3 edge1 = p1 - p0;
       glm::vec3 edge2 = p2 - p0;
       glm::vec3 normal1 = glm::normalize(glm::cross(edge1, edge2));
@@ -230,7 +239,6 @@ int Mesh::loadSweep(const std::vector<glm::vec3> &points, const size_t res,
       vertices.push_back({p0, glm::vec2(0.0f), normal1});
       vertices.push_back({p2, glm::vec2(0.0f), normal1});
 
-      // Triangle 2: p0, p2, p3
       glm::vec3 edge3 = p2 - p0;
       glm::vec3 edge4 = p3 - p0;
       glm::vec3 normal2 = glm::normalize(glm::cross(edge3, edge4));

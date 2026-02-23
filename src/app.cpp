@@ -64,7 +64,8 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
         resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
   } else if (!cfg.sweep.points.empty()) {
     registry.getMesh(obj).mesh = resourceManager.loadMesh(
-        cfg.sweep.points, cfg.sweep.resolution, cfg.sweep.radius);
+        cfg.sweep.points, cfg.sweep.pathSegments, cfg.sweep.circleSegments,
+        cfg.sweep.radius);
   } else {
     std::cerr << "Error loading object" << std::endl;
   }
@@ -108,8 +109,9 @@ void App::run() {
                   {-40, 15, 0},  // rise again
                   {-20, 30, 20}, // crest
                   {0, 5, 0}},    // rejoin start (cyclic)
-                 1,
-                 160}},
+                 1.0f,           // radius
+                 200,            // pathSegments (smooth curve subdivision)
+                 24}},           // circleSegments (cross-section detail)
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{0, 0, 0}, {0, 0, 0}, {2, 2, 2}},

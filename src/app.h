@@ -29,7 +29,7 @@ struct ObjectConfig {
   Light light{{0, 0, 0}, 0.f};
   SineAnimator sineAnim{{0, 0, 0}, 0.f, 0.f, 0.f};
   RotationAnimator rotationAnim{{0, 0, 0}, 0.f};
-  Sweep sweep{{}, 0, 0};
+  Sweep sweep{{}, 0, 0, 0};
   ParametricAnimator parAnim{{}, 0.f};
 };
 

@@ -25,8 +25,8 @@ public:
   int loadObj(const std::string &assetsPath, const std::string &objFileName);
 
   // loades mesh from sweep config
-  int loadSweep(const std::vector<glm::vec3> &points, const size_t res,
-                const float radius);
+  int loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
+                int circleSegments, float radius);
   // Getters
   size_t getVertexCount() const { return vertexCount; }
   unsigned int getVAO() { return buffer.getVAO(); }

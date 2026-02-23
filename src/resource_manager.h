@@ -19,7 +19,8 @@ public:
                                  unsigned int textureUniform = 0);
 
   // Loads mesh from vector of vec3s, radius and res
-  std::shared_ptr<Mesh> loadMesh(const std::vector<glm::vec3> &verts, int res,
+  std::shared_ptr<Mesh> loadMesh(const std::vector<glm::vec3> &verts,
+                                 int pathSegments, int circleSegments,
                                  float radius, unsigned int textureUniform = 0);
 
 private:

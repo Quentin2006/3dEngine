@@ -44,7 +44,8 @@ struct ParametricAnimator {
 struct Sweep {
   std::vector<glm::vec3> points;
   float radius;
-  int resolution; // # of segments the mesh will have for a circle
+  int pathSegments;   // # of subdivisions along the spline curve
+  int circleSegments; // # of vertices per cross-section circle
 };
 
 struct MeshPath {
