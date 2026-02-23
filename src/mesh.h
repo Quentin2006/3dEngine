@@ -30,9 +30,11 @@ public:
   // Getters
   size_t getVertexCount() const { return vertexCount; }
   unsigned int getVAO() { return buffer.getVAO(); }
+  float getShininess() const { return shininess; }
 
 private:
   void setTexture(const std::string &path);
+  void setSpecularTexture(const std::string &path);
 
   /**
    * @brief will genearte a list of points used to reperesent a circle centered
@@ -46,6 +48,8 @@ private:
   vertexBuffer buffer;
   size_t vertexCount;
   unsigned int texture;
+  unsigned int specularTexture;
+  float shininess;
 
   std::vector<Vertex> vertices;
 };

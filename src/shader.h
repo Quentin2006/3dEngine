@@ -8,6 +8,7 @@ public:
   Shader();
   ~Shader();
   void loadShaders();
+  void use() { glUseProgram(currentShaderProgram); }
   unsigned int getShaderProgram() { return currentShaderProgram; }
   int addUniform(const std::string &name);
   unsigned int getUniformLocation(const std::string &name);

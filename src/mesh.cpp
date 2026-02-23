@@ -25,7 +25,8 @@
 #include <iostream>
 
 Mesh::Mesh(unsigned int textureUniform)
-    : buffer(), vertexCount(0), texture(textureUniform) {
+    : buffer(), vertexCount(0), texture(textureUniform), specularTexture(0),
+      shininess(32.0f) {
   // Create default white texture (1x1 pixel)
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -38,11 +39,31 @@ Mesh::Mesh(unsigned int textureUniform)
   unsigned char whitePixel[] = {255, 255, 255, 255}; // RGBA white
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                whitePixel);
+
+  // Create default white specular texture (1x1 pixel)
+  glGenTextures(1, &specularTexture);
+  glBindTexture(GL_TEXTURE_2D, specularTexture);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+               whitePixel);
 }
 
 void Mesh::draw() {
   glBindVertexArray(buffer.getVAO());
+
+  // Bind diffuse texture to unit 0
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
+
+  // Bind specular texture to unit 1
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, specularTexture);
+
   glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }
 
@@ -83,6 +104,43 @@ void Mesh::setTexture(const std::string &path) {
   stbi_image_free(data);
 }
 
+void Mesh::setSpecularTexture(const std::string &path) {
+  // Delete old specular texture if exists
+  if (specularTexture != 0) {
+    glDeleteTextures(1, &specularTexture);
+  }
+
+  glGenTextures(1, &specularTexture);
+  glBindTexture(GL_TEXTURE_2D, specularTexture);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                  GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  int width, height, nrChannels;
+  unsigned char *data =
+      stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+
+  if (data) {
+    std::cerr << "Loading specular texture: " << path << std::endl;
+    GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+                 GL_UNSIGNED_BYTE, data);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    std::cerr << "Failed to load specular texture: " << path << std::endl;
+    // Fallback to white texture
+    unsigned char whitePixel[] = {255, 255, 255, 255};
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 whitePixel);
+  }
+  stbi_image_free(data);
+}
+
 int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
   tinyobj::ObjReader reader;
   tinyobj::ObjReaderConfig readerConfig;
@@ -114,12 +172,28 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
       // Only load texture if material has diffuse texture and we haven't loaded
       // it yet
       if (material_id >= 0 && !textureLoaded) {
-        const std::string &texName = materials[material_id].diffuse_texname;
-        if (!texName.empty()) {
-          std::string texturePath = filePath + texName;
+        const std::string &difTexName = materials[material_id].diffuse_texname;
+        const std::string &specTexName =
+            materials[material_id].specular_texname;
+
+        if (!difTexName.empty()) {
+          std::string texturePath = filePath + difTexName;
           std::cerr << "Loading texture: " << texturePath << std::endl;
           setTexture(texturePath);
           textureLoaded = true;
+        }
+
+        if (!specTexName.empty()) {
+          std::string texturePath = filePath + specTexName;
+          std::cerr << "Loading specular texture: " << texturePath << std::endl;
+          setSpecularTexture(texturePath);
+        }
+
+        // Load shininess from material
+        if (material_id >= 0) {
+          shininess = materials[material_id].shininess;
+          if (shininess < 1.0f)
+            shininess = 32.0f; // default
         }
       }
 
@@ -182,7 +256,8 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
 
 int Mesh::loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
                     int circleSegments, float radius) {
-  if (points.size() < 2) return 0;
+  if (points.size() < 2)
+    return 0;
 
   // Detect cyclic path: first and last points match
   bool cyclic = glm::length(points.front() - points.back()) < 0.001f;

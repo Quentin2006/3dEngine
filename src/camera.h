@@ -59,6 +59,7 @@ public:
   };
 
   const glm::mat4& getProjectionMatrix() { return projection; }
+  const glm::vec3& getPosition() const { return position; }
 
 private:
   float FOV, zNear, zFar;

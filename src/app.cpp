@@ -87,7 +87,10 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
 void App::run() {
   // get uniform location, now that the shader exists, we can find the ID
   shader.addUniform("model");
-  shader.addUniform("ourTexture");
+  shader.addUniform("diffuseTexture");
+  shader.addUniform("specularTexture");
+  shader.addUniform("shininess");
+  shader.addUniform("cameraPos");
 
   // bind uniforms to shader
   shader.bindUniformBlock("LightBlock", 0);
@@ -98,6 +101,14 @@ void App::run() {
 
   std::vector<ObjectConfig> objectConfigs = {
 
+      // === TEST: Simple cube at origin ===
+      {
+          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
+          .light = {{1, 1, 1}, 1000.0f},
+      },
+
+      // === ROLLER COASTER TRACK ===
       {.sweep = {{{0, 5, 0},     // start
                   {20, 5, 20},   // curve out
                   {40, 25, 0},   // climb up
@@ -107,41 +118,138 @@ void App::run() {
                   {-40, 15, 0},  // rise again
                   {-20, 30, 20}, // crest
                   {0, 5, 0}},    // rejoin start (cyclic)
-                 0.1f,           // radius
-                 2000,           // pathSegments (smooth curve subdivision)
-                 240}},          // circleSegments (cross-section detail)
+                  0.4f,           // radius
+                  3000,           // pathSegments
+                  24}},           // circleSegments
+
+      // === RIDERS ON THE TRACK ===
+      // Wolf rider
+      {
+          .mesh = {"../../Sync/3dEngine-assets/wolf/", "Wolf_obj.obj"},
+          .transform = {{0, 6, 0}, {0, 0, 0}, {0.05, 0.05, 0.05}},
+          .light = {{1, 0.5, 0}, 200.0f},
+          .parAnim = {{{0, 5, 0},
+                       {20, 5, 20},
+                       {40, 25, 0},
+                       {20, 40, -20},
+                       {0, 20, -40},
+                       {-20, 5, -20},
+                       {-40, 15, 0},
+                       {-20, 30, 20},
+                       {0, 5, 0}},
+                      2.0f}, // speed
+      },
+      // Human rider
+      {
+          .mesh = {"../../Sync/3dEngine-assets/human/", "FinalBaseMesh.obj"},
+          .transform = {{0, 6, 0}, {0, 0, 0}, {0.5, 0.5, 0.5}},
+          .light = {{0, 1, 1}, 200.0f},
+          .parAnim = {{{0, 5, 0},
+                       {20, 5, 20},
+                       {40, 25, 0},
+                       {20, 40, -20},
+                       {0, 20, -40},
+                       {-20, 5, -20},
+                       {-40, 15, 0},
+                       {-20, 30, 20},
+                       {0, 5, 0}},
+                      1.5f}, // speed
+      },
+      // Bugatti rider
+      {
+          .mesh = {"../../Sync/3dEngine-assets/bugatti/", "bugatti.obj"},
+          .transform = {{0, 6, 0}, {0, 0, 0}, {0.3, 0.3, 0.3}},
+          .light = {{1, 0, 0.5}, 300.0f},
+          .parAnim = {{{0, 5, 0},
+                       {20, 5, 20},
+                       {40, 25, 0},
+                       {20, 40, -20},
+                       {0, 20, -40},
+                       {-20, 5, -20},
+                       {-40, 15, 0},
+                       {-20, 30, 20},
+                       {0, 5, 0}},
+                      3.0f}, // speed
+      },
+      // Car rider
+      {
+          .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
+          .transform = {{0, 6, 0}, {0, 0, 0}, {0.3, 0.3, 0.3}},
+          .light = {{0, 1, 0}, 300.0f},
+          .parAnim = {{{0, 5, 0},
+                       {20, 5, 20},
+                       {40, 25, 0},
+                       {20, 40, -20},
+                       {0, 20, -40},
+                       {-20, 5, -20},
+                       {-40, 15, 0},
+                       {-20, 30, 20},
+                       {0, 5, 0}},
+                      1.0f}, // speed
+      },
+
+      // === SUPPORT PILLARS ===
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {2, 2, 2}},
-          .light = {{1, 0, 0}, 500.0f},
-          .parAnim = {{{0, 5, 0},     // start
-                       {20, 5, 20},   // curve out
-                       {40, 25, 0},   // climb up
-                       {20, 40, -20}, // peak & drop
-                       {0, 20, -40},  // swoop down
-                       {-20, 5, -20}, // valley
-                       {-40, 15, 0},  // rise again
-                       {-20, 30, 20}, // crest
-                       {0, 5, 0}},    // rejoin start (cyclic)
-                      1},
+          .transform = {{0, 0, 0}, {0, 0, 0}, {0.5, 5, 0.5}},
+          .light = {{0.5, 0.5, 0.5}, 50.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-40, 10, 0}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{0, 1, 0}, 500.0f},
-          .rotationAnim = {{0, 1, 0}, 30.0f}, // orbit around Y axis
+          .transform = {{20, 0, 20}, {0, 0, 0}, {0.5, 3, 0.5}},
+          .light = {{0.5, 0.5, 0.5}, 50.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 10, 40}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{0, 0, 1}, 500.0f},
-          .rotationAnim = {{0, 1, 0}, 30.0f}, // orbit around Y axis
+          .transform = {{40, 10, 0}, {0, 0, 0}, {0.5, 8, 0.5}},
+          .light = {{0.5, 0.5, 0.5}, 50.0f},
       },
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 10, -40}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{1, 1, 0}, 500.0f},
-          .rotationAnim = {{0, 1, 0}, 30.0f}, // orbit around Y axis
+          .transform = {{20, 20, -20}, {0, 0, 0}, {0.5, 10, 0.5}},
+          .light = {{0.5, 0.5, 0.5}, 50.0f},
+      },
+      {
+          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-20, 0, -20}, {0, 0, 0}, {0.5, 3, 0.5}},
+          .light = {{0.5, 0.5, 0.5}, 50.0f},
+      },
+      {
+          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-40, 5, 0}, {0, 0, 0}, {0.5, 5, 0.5}},
+          .light = {{0.5, 0.5, 0.5}, 50.0f},
+      },
+      {
+          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-20, 15, 20}, {0, 0, 0}, {0.5, 8, 0.5}},
+          .light = {{0.5, 0.5, 0.5}, 50.0f},
+      },
+
+      // === ENVIRONMENT: COTTAGE ===
+      {
+          .mesh = {"../../Sync/3dEngine-assets/cottage/", "cottage_obj.obj"},
+          .transform = {{50, 0, 0}, {0, 45, 0}, {2, 2, 2}},
+          .light = {{1, 0.9, 0.7}, 300.0f},
+      },
+
+      // === DECORATIVE ANIMATED CUBES ===
+      {
+          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{30, 30, 30}, {0, 0, 0}, {2, 2, 2}},
+          .light = {{1, 0, 1}, 200.0f},
+          .rotationAnim = {{1, 1, 0}, 20.0f},
+      },
+      {
+          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{-30, 35, -30}, {0, 0, 0}, {3, 3, 3}},
+          .light = {{0, 1, 1}, 200.0f},
+          .rotationAnim = {{0, 1, 1}, 15.0f},
+      },
+      {
+          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
+          .transform = {{0, 50, 0}, {0, 0, 0}, {1.5, 1.5, 1.5}},
+          .light = {{1, 1, 0}, 200.0f},
+          .rotationAnim = {{1, 0, 1}, 25.0f},
       },
   };
 
@@ -200,7 +308,14 @@ void App::run() {
     // Upload light data to GPU
     cameraUniformBuffer.uploadData(&cameraBlock, sizeof(CameraBlock));
 
-    renderAll(registry, shader.getUniformLocation("model"));
+    // Set camera position for specular lighting
+    glUniform3fv(shader.getUniformLocation("cameraPos"), 1, glm::value_ptr(camera.getPosition()));
+
+    shader.use();
+    renderAll(registry, shader.getUniformLocation("model"),
+               shader.getUniformLocation("diffuseTexture"),
+               shader.getUniformLocation("specularTexture"),
+               shader.getUniformLocation("shininess"));
     window.swapBuffers();
   }
 
