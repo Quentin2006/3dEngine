@@ -16,8 +16,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-using std::string;
-
 void fps(float deltaTime) {
   static float fpsTimer = 0;
   fpsTimer += deltaTime;
@@ -63,9 +61,9 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
     registry.getMesh(obj).mesh =
         resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
   } else if (!cfg.sweep.points.empty()) {
-    registry.getMesh(obj).mesh = resourceManager.loadMesh(
-        cfg.sweep.points, cfg.sweep.pathSegments, cfg.sweep.circleSegments,
-        cfg.sweep.radius);
+    registry.getMesh(obj).mesh =
+        resourceManager.loadMesh(cfg.sweep.points, cfg.sweep.pathSegments,
+                                 cfg.sweep.circleSegments, cfg.sweep.radius);
   } else {
     std::cerr << "Error loading object" << std::endl;
   }
@@ -109,9 +107,9 @@ void App::run() {
                   {-40, 15, 0},  // rise again
                   {-20, 30, 20}, // crest
                   {0, 5, 0}},    // rejoin start (cyclic)
-                 1.0f,           // radius
-                 200,            // pathSegments (smooth curve subdivision)
-                 24}},           // circleSegments (cross-section detail)
+                 0.1f,           // radius
+                 2000,           // pathSegments (smooth curve subdivision)
+                 240}},          // circleSegments (cross-section detail)
       {
           .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
           .transform = {{0, 0, 0}, {0, 0, 0}, {2, 2, 2}},
@@ -160,7 +158,7 @@ void App::run() {
         std::chrono::duration<float>(currentTime - prevTime).count();
     prevTime = currentTime;
     totalTime += deltaTime;
-    // fps(deltaTime);
+    fps(deltaTime);
 
     // clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -209,26 +207,28 @@ void App::run() {
   glfwTerminate();
 }
 
-// would like to abstract into camera class
 void App::moveCamera(float deltaTime) {
+  float moveAmount = MOVEMENT_SPEED * deltaTime;
+  float rotAmount = ROTATION_SPEED * deltaTime;
+
   if (input.w)
-    camera.moveForward(MOVEMENT_SPEED * deltaTime);
+    camera.moveForward(moveAmount);
   if (input.s)
-    camera.moveForward(-MOVEMENT_SPEED * deltaTime);
+    camera.moveForward(-moveAmount);
   if (input.a)
-    camera.moveRight(-MOVEMENT_SPEED * deltaTime);
+    camera.moveRight(-moveAmount);
   if (input.d)
-    camera.moveRight(MOVEMENT_SPEED * deltaTime);
+    camera.moveRight(moveAmount);
   if (input.q)
-    camera.moveUp(MOVEMENT_SPEED * deltaTime);
+    camera.moveUp(moveAmount);
   if (input.e)
-    camera.moveUp(-MOVEMENT_SPEED * deltaTime);
+    camera.moveUp(-moveAmount);
   if (input.up)
-    camera.rotatePitch(ROTATION_SPEED * deltaTime);
+    camera.rotatePitch(rotAmount);
   if (input.down)
-    camera.rotatePitch(-ROTATION_SPEED * deltaTime);
+    camera.rotatePitch(-rotAmount);
   if (input.left)
-    camera.rotateYaw(-ROTATION_SPEED * deltaTime);
+    camera.rotateYaw(-rotAmount);
   if (input.right)
-    camera.rotateYaw(ROTATION_SPEED * deltaTime);
+    camera.rotateYaw(rotAmount);
 }

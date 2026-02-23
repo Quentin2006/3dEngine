@@ -6,10 +6,9 @@
 namespace spline {
 
 // Evaluate Catmull-Rom spline at parameter t for 4 control points
-// t ∈ [0, 1], curve passes through p1 (at t=0) and p2 (at t=1)
+// t in [0, 1], curve passes through p1 (at t=0) and p2 (at t=1)
 inline glm::vec3 catmullRom(const glm::vec3 &p0, const glm::vec3 &p1,
-                             const glm::vec3 &p2, const glm::vec3 &p3,
-                             float t) {
+                            const glm::vec3 &p2, const glm::vec3 &p3, float t) {
   float t2 = t * t;
   float t3 = t2 * t;
   return 0.5f * ((2.0f * p1) + (-p0 + p2) * t +
@@ -19,9 +18,8 @@ inline glm::vec3 catmullRom(const glm::vec3 &p0, const glm::vec3 &p1,
 
 // Subdivide a set of control points into `totalSamples` smooth points.
 // If cyclic is true, the spline wraps around (first/last point should match).
-inline std::vector<glm::vec3>
-subdivide(const std::vector<glm::vec3> &points, int totalSamples,
-          bool cyclic = false) {
+inline std::vector<glm::vec3> subdivide(const std::vector<glm::vec3> &points,
+                                        int totalSamples, bool cyclic = false) {
   std::vector<glm::vec3> result;
   result.reserve(totalSamples);
 
