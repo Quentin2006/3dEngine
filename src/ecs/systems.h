@@ -1,7 +1,9 @@
 #pragma once
 #include "../../include/glad/glad.h"
+#include "../math/spline.h"
 #include "../mesh.h"
 #include "registry.h"
+#include <cmath>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -43,14 +45,44 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
     // NOTE: CHECK PARAMETRIC ANIMATOR
     auto &parametricOpt = reg.getParametricAnimator(i);
     if (parametricOpt.has_value()) {
-      // will generate a point given the time
       auto &anim = parametricOpt.value();
+      const auto &pts = anim.points;
 
-      auto cur_point =
-          anim.points[int(totalTime * anim.speed) % anim.points.size()];
+      if (pts.size() >= 2) {
+        bool cyclic = glm::length(pts.front() - pts.back()) < 0.001f;
+        int numSegments = (int)pts.size() - 1;
 
-      auto &t = reg.getTransform(i);
-      t.position = cur_point;
+        // totalTime * speed gives us how far along the path we are
+        float globalT = std::fmod(totalTime * anim.speed, (float)numSegments);
+        if (globalT < 0.0f)
+          globalT += (float)numSegments;
+
+        int seg = (int)globalT;
+        float localT = globalT - (float)seg;
+
+        if (seg >= numSegments) {
+          seg = numSegments - 1;
+          localT = 1.0f;
+        }
+
+        glm::vec3 p0, p1, p2, p3;
+        if (cyclic) {
+          int n = numSegments;
+          p0 = pts[((seg - 1) % n + n) % n];
+          p1 = pts[seg % n];
+          p2 = pts[(seg + 1) % n];
+          p3 = pts[(seg + 2) % n];
+        } else {
+          int n = (int)pts.size();
+          p0 = pts[std::max(seg - 1, 0)];
+          p1 = pts[seg];
+          p2 = pts[std::min(seg + 1, n - 1)];
+          p3 = pts[std::min(seg + 2, n - 1)];
+        }
+
+        auto &t = reg.getTransform(i);
+        t.position = spline::catmullRom(p0, p1, p2, p3, localT);
+      }
     }
   }
 }
