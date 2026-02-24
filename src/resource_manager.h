@@ -21,7 +21,9 @@ public:
   // Loads mesh from vector of vec3s, radius and res
   std::shared_ptr<Mesh> loadMesh(const std::vector<glm::vec3> &verts,
                                  int pathSegments, int circleSegments,
-                                 float radius, unsigned int textureUniform = 0);
+                                 float radius,
+                                 glm::vec3 color = {1.f, 1.f, 1.f},
+                                 unsigned int textureUniform = 0);
 
 private:
   std::unordered_map<std::string, std::weak_ptr<Mesh>> meshCache;

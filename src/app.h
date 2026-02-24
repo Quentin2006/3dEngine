@@ -29,7 +29,7 @@ struct ObjectConfig {
   Light light{{0, 0, 0}, 0.f};
   SineAnimator sineAnim{{0, 0, 0}, 0.f, 0.f, 0.f};
   RotationAnimator rotationAnim{{0, 0, 0}, 0.f};
-  Sweep sweep{{}, 0, 0, 0};
+  Sweep sweep{{}, 0, 0, 0, {1, 1, 1}};
   ParametricAnimator parAnim{{}, 0.f, 0.f};
 };
 
@@ -50,9 +50,6 @@ struct Controls {
       GLFW_KEY_LEFT; // Look left (rotate around Y)
   static const int ROTATE_YAW_RIGHT =
       GLFW_KEY_RIGHT; // Look right (rotate around Y)
-
-  // Actions
-  static const int RELOAD_SHADERS = GLFW_KEY_R; // Hot-reload shader files
 };
 
 class App {
@@ -126,12 +123,6 @@ inline void key_callback(GLFWwindow *window, int key, int, int action, int) {
   case Controls::ROTATE_YAW_RIGHT:
     app->getInputState()->right = pressed;
     return;
-  // case Controls::RELOAD_SHADERS:
-  //   if (pressed) {
-  //     std::cerr << "Reloading shaders" << std::endl;
-  //     app->getShader()->loadShaders();
-  //   }
-  //   return;
   default:
     return;
   }

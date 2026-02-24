@@ -48,6 +48,7 @@ struct Sweep {
   float radius;
   int pathSegments;   // # of subdivisions along the spline curve
   int circleSegments; // # of vertices per cross-section circle
+  glm::vec3 color;
 };
 
 struct MeshPath {

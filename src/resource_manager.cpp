@@ -31,10 +31,10 @@ std::shared_ptr<Mesh> ResourceManager::loadMesh(const std::string &path,
 }
 
 std::shared_ptr<Mesh>
-ResourceManager::loadMesh(const std::vector<glm::vec3> &verts,
-                          int pathSegments, int circleSegments, float radius,
+ResourceManager::loadMesh(const std::vector<glm::vec3> &verts, int pathSegments,
+                          int circleSegments, float radius, glm::vec3 color,
                           unsigned int textureUniform) {
-  auto mesh = std::make_shared<Mesh>(textureUniform);
+  auto mesh = std::make_shared<Mesh>(textureUniform, color);
   int size = mesh->loadSweep(verts, pathSegments, circleSegments, radius);
   if (size == 0) {
     std::cerr << "Cannot load mesh with no verts" << std::endl;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vertexBuffer.h"
+#include <glm/detail/qualifier.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <string>
 #include <vector>
@@ -14,7 +15,7 @@ enum TextureType { Diffuse, Specular, Image };
 
 class Mesh {
 public:
-  Mesh(unsigned int textureUniform = 0);
+  Mesh(unsigned int textureUniform = 0, glm::vec3 color = {1.f, 1.f, 1.f});
 
   // Prevent copying (vertexBuffer is immobile)
   Mesh(const Mesh &) = delete;
@@ -45,6 +46,7 @@ private:
   unsigned int specularTexture;
   unsigned int diffuseTexture;
   float shininess;
+  glm::vec3 color;
 
   std::vector<Vertex> vertices;
 };

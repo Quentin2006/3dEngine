@@ -24,11 +24,14 @@
 
 #include <iostream>
 
-Mesh::Mesh(unsigned int textureUniform)
+Mesh::Mesh(unsigned int textureUniform, glm::vec3 color)
     : buffer(), vertexCount(0), imageTexture(textureUniform),
       specularTexture(textureUniform), diffuseTexture(textureUniform),
-      shininess(32.0f) {
-  unsigned char whitePixel[] = {255, 255, 255, 255}; // RGBA white
+      shininess(32.0f), color(color) {
+  unsigned char whitePixel[] = {static_cast<unsigned char>(color.r * 255),
+                                static_cast<unsigned char>(color.g * 255),
+                                static_cast<unsigned char>(color.b * 255),
+                                255}; // RGBA white
 
   // Create default white texture (1x1 pixel)
   glGenTextures(1, &imageTexture);

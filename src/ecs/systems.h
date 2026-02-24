@@ -48,57 +48,44 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
       t.rotation += anim.axis * anim.rpm * 6.0f * deltaTime;
     }
     // NOTE: CHECK PARAMETRIC ANIMATOR
+    // Get the parametric animator for this entity
     auto &parametricOpt = reg.getParametricAnimator(i);
     if (parametricOpt.has_value()) {
       auto &anim = parametricOpt.value();
       const auto &pts = anim.points;
 
+      // Need at least 2 points to define a path
       if (pts.size() >= 2) {
+        // Check if path is closed (first and last points are nearly identical)
         bool cyclic = glm::length(pts.front() - pts.back()) < 0.001f;
+
+        // Number of segments is points minus one
         int numSegments = (int)pts.size() - 1;
 
+        // Calculate normalized position along the entire path
         // totalTime * speed gives us how far along the path we are
+        // phase offsets the starting position on the path
         float globalT = std::fmod(totalTime * anim.speed +
                                       numSegments * parametricOpt->phase,
                                   numSegments);
+        // Handle negative time by wrapping to positive range
         if (globalT < 0.0f)
           globalT += (float)numSegments;
 
-        int seg = (int)globalT;
-        float localT = globalT - (float)seg;
+        auto [pos, tangent] =
+            spline::calculatePosOnSpline(cyclic, numSegments, pts, globalT);
 
-        if (seg >= numSegments) {
-          seg = numSegments - 1;
-          localT = 1.0f;
-        }
-
-        glm::vec3 p0, p1, p2, p3;
-        if (cyclic) {
-          int n = numSegments;
-          p0 = pts[((seg - 1) % n + n) % n];
-          p1 = pts[seg % n];
-          p2 = pts[(seg + 1) % n];
-          p3 = pts[(seg + 2) % n];
-        } else {
-          int n = (int)pts.size();
-          p0 = pts[std::max(seg - 1, 0)];
-          p1 = pts[seg];
-          p2 = pts[std::min(seg + 1, n - 1)];
-          p3 = pts[std::min(seg + 2, n - 1)];
-        }
-
+        // Interpolate position along the spline
         auto &t = reg.getTransform(i);
-        t.position = spline::catmullRom(p0, p1, p2, p3, localT);
+        t.position = pos;
 
-        // Compute tangent for orientation (face direction of travel)
-        glm::vec3 tangent = spline::catmullRomTangent(p0, p1, p2, p3, localT);
-        tangent = glm::normalize(tangent);
-
-        // Convert tangent to yaw/pitch rotation
+        // Convert tangent vector to yaw/pitch rotation angles
+        // yaw = horizontal direction, pitch = vertical angle
         float yaw = glm::degrees(std::atan2(-tangent.z, tangent.x));
         float pitch =
             glm::degrees(std::asin(glm::clamp(tangent.y, -1.0f, 1.0f)));
 
+        // Apply rotation so entity faces along the path
         t.rotation = {pitch, yaw, 0.0f};
       }
     }
