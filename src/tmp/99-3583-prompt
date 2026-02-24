@@ -1,3 +1,27 @@
+<DIRECTIONS>
+duplicate this for both coasterPOints1 and 2
+</DIRECTIONS>
+<Context>
+You receive a selection in neovim that you need to replace with new code.
+The selection's contents may contain notes, incorporate the notes every time if there are some.
+consider the context of the selection and what you are suppose to be implementing
+<SELECTION_LOCATION>
+range(point(119,1),point(129,69))
+</SELECTION_LOCATION>
+<SELECTION_CONTENT>
+      {.sweep = {coasterPoints, 0.4f, 3000, 24}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .1}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .2}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .3}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .4}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .5}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .6}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .7}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .8}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .9}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, 0}},
+</SELECTION_CONTENT>
+<FILE_CONTAINING_SELECTION>
 #include "app.h"
 #include "ecs/components.h"
 #include "ecs/systems.h"
@@ -97,17 +121,23 @@ void App::run() {
   lightUniformBuffer.bindToPoint(0);
   cameraUniformBuffer.bindToPoint(1);
 
-  std::vector<glm::vec3> coasterPoints = {{{0, 5, 0},     // start
-                                           {20, 5, 20},   // curve out
-                                           {40, 25, 0},   // climb up
-                                           {20, 40, -20}, // peak & drop
-                                           {0, 20, -40},  // swoop down
-                                           {-20, 5, -20}, // valley
-                                           {-40, 15, 0},  // rise again
-                                           {-20, 30, 20}, // crest
-                                           {0, 5, 0}}};
+  std::vector<glm::vec3> coasterPoints1 = {{{0, 5, 0},     // start
+                                            {20, 5, 20},   // curve out
+                                            {40, 25, 0},   // climb up
+                                            {20, 40, -20}, // peak & drop
+                                            {0, 20, -40},  // swoop down
+                                            {-20, 5, -20}, // valley
+                                            {-40, 15, 0},  // rise again
+                                            {-20, 30, 20}, // crest
+                                            {0, 5, 0}}};
 
-  // NOTE: entities will get id's starting at 0
+  // want to scale the x and z comonents to get a "track" like sweep
+  std::vector<glm::vec3> coasterPoints2 = {};
+
+  for (const auto &p : coasterPoints1) {
+    coasterPoints2.push_back({p.x * 0.5f, p.y, p.z * 0.5f});
+  }
+
   std::vector<ObjectConfig> objectConfigs = {
       // === ROLLER COASTER TRACK ===
       {.sweep = {coasterPoints, 0.4f, 3000, 24}},
@@ -122,10 +152,7 @@ void App::run() {
       {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .9}},
       {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, 0}},
 
-      {
-          .mesh = {{"../../Sync/3dEngine-assets/3d-cubes/"}, {"cube-tex.obj"}},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}, 1},
-      }};
+      {.mesh = {{"../../Sync/3dEngine-assets/3d-cubes/"}, {"cube-tex.obj"}}}};
 
   for (const auto &cfg : objectConfigs) {
     loadObjectFromConfig(cfg);
@@ -222,3 +249,31 @@ void App::moveCamera(float deltaTime) {
   if (input.right)
     camera.rotateYaw(rotAmount);
 }
+</FILE_CONTAINING_SELECTION>
+
+</Context>
+
+<Location><File>/home/qscheetz/Documents/3dEngine/src/app.cpp</File><Function>range(point(119,1),point(129,69))</Function></Location>
+<FunctionText>      {.sweep = {coasterPoints, 0.4f, 3000, 24}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .1}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .2}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .3}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .4}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .5}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .6}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .7}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .8}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .9}},
+      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, 0}},</FunctionText>
+<MustObey>
+NEVER alter any file other than TEMP_FILE.
+never provide the requested changes as conversational output. Return only the code.
+ONLY provide requested changes by writing the change to TEMP_FILE
+
+never attempt to read TEMP_FILE.
+It is purely for output.
+Previous contents, which may not exist, can be written over without worry
+After writing TEMP_FILE once you should be done.  Be done and end the session.
+
+</MustObey>
+<TEMP_FILE>./tmp/99-3583</TEMP_FILE>

@@ -19,6 +19,11 @@ inline void updateTransforms(Registry &reg) {
     t.matrix =
         glm::rotate(t.matrix, glm::radians(t.rotation.z), glm::vec3(0, 0, 1));
     t.matrix = glm::scale(t.matrix, t.scale);
+
+    if (t.parrentId >= 0) {
+      auto &parrentTranform = reg.getTransform(t.parrentId);
+      t.matrix = parrentTranform.matrix * t.matrix;
+    }
   }
 }
 

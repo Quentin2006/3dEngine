@@ -15,7 +15,8 @@ struct Transform {
   glm::vec3 position;
   glm::vec3 rotation;
   glm::vec3 scale;
-  glm::mat4 matrix{1.f};
+  int parrentId; // any neg # will be no parrent
+  glm::mat4 matrix;
 };
 
 struct Light {
