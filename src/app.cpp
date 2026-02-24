@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <ostream>
+#include <vector>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
@@ -99,135 +100,28 @@ void App::run() {
   lightUniformBuffer.bindToPoint(0);
   cameraUniformBuffer.bindToPoint(1);
 
+  std::vector<glm::vec3> coasterPoints = {{{0, 5, 0},     // start
+                                           {20, 5, 20},   // curve out
+                                           {40, 25, 0},   // climb up
+                                           {20, 40, -20}, // peak & drop
+                                           {0, 20, -40},  // swoop down
+                                           {-20, 5, -20}, // valley
+                                           {-40, 15, 0},  // rise again
+                                           {-20, 30, 20}, // crest
+                                           {0, 5, 0}}};
+
   std::vector<ObjectConfig> objectConfigs = {
 
       // === ROLLER COASTER TRACK ===
-      {.sweep = {{{0, 5, 0},     // start
-                  {20, 5, 20},   // curve out
-                  {40, 25, 0},   // climb up
-                  {20, 40, -20}, // peak & drop
-                  {0, 20, -40},  // swoop down
-                  {-20, 5, -20}, // valley
-                  {-40, 15, 0},  // rise again
-                  {-20, 30, 20}, // crest
-                  {0, 5, 0}},    // rejoin start (cyclic)
-                 0.4f,           // radius
-                 3000,           // pathSegments
-                 24}},           // circleSegments
+      {.sweep = {coasterPoints, 0.4f, 3000, 24}},
+      {.light = {{1, 0, 0}, 10}, .parAnim = {coasterPoints, 1}},
+      {.light = {{0, 1, 0}, 10}, .parAnim = {coasterPoints, 1.5}},
+      {.light = {{0, 0, 1}, 10}, .parAnim = {coasterPoints, 2}},
+      {.light = {{1, 1, 0}, 10}, .parAnim = {coasterPoints, 2.5}},
+      {.light = {{0, 1, 1}, 10}, .parAnim = {coasterPoints, 3}},
+      {.light = {{1, 0, 1}, 10}, .parAnim = {coasterPoints, 3.5}},
+      {.light = {{1, 1, 1}, 10}, .parAnim = {coasterPoints, 4}},
 
-      // === RIDERS ON THE TRACK ===
-      // Wolf rider
-      {
-          .mesh = {"../../Sync/3dEngine-assets/wolf/", "Wolf_obj.obj"},
-          .transform = {{0, 6, 0}, {0, 0, 0}, {0.05, 0.05, 0.05}},
-          .light = {{1, 0.5, 0}, 20.0f},
-          .parAnim = {{{0, 5, 0},
-                       {20, 5, 20},
-                       {40, 25, 0},
-                       {20, 40, -20},
-                       {0, 20, -40},
-                       {-20, 5, -20},
-                       {-40, 15, 0},
-                       {-20, 30, 20},
-                       {0, 5, 0}},
-                      2.0f}, // speed
-      },
-      // Human rider
-      {
-          .mesh = {"../../Sync/3dEngine-assets/human/", "FinalBaseMesh.obj"},
-          .transform = {{0, 6, 0}, {0, 0, 0}, {0.5, 0.5, 0.5}},
-          .light = {{0, 1, 1}, 20.0f},
-          .parAnim = {{{0, 5, 0},
-                       {20, 5, 20},
-                       {40, 25, 0},
-                       {20, 40, -20},
-                       {0, 20, -40},
-                       {-20, 5, -20},
-                       {-40, 15, 0},
-                       {-20, 30, 20},
-                       {0, 5, 0}},
-                      1.5f}, // speed
-      },
-      // Car rider
-      {
-          .mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
-          .transform = {{0, 6, 0}, {0, 0, 0}, {0.3, 0.3, 0.3}},
-          .light = {{0, 1, 0}, 30.0f},
-          .parAnim = {{{0, 5, 0},
-                       {20, 5, 20},
-                       {40, 25, 0},
-                       {20, 40, -20},
-                       {0, 20, -40},
-                       {-20, 5, -20},
-                       {-40, 15, 0},
-                       {-20, 30, 20},
-                       {0, 5, 0}},
-                      1.0f}, // speed
-      },
-
-      // === SUPPORT PILLARS ===
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {0.5, 5, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 10.0f},
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{20, 0, 20}, {0, 0, 0}, {0.5, 3, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 10.0f},
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{40, 10, 0}, {0, 0, 0}, {0.5, 8, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 10.0f},
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{20, 20, -20}, {0, 0, 0}, {0.5, 10, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 10.0f},
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-20, 0, -20}, {0, 0, 0}, {0.5, 3, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 10.0f},
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-40, 5, 0}, {0, 0, 0}, {0.5, 5, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 10.0f},
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-20, 15, 20}, {0, 0, 0}, {0.5, 8, 0.5}},
-          .light = {{0.5, 0.5, 0.5}, 10.0f},
-      },
-
-      // === ENVIRONMENT: COTTAGE ===
-      {
-          .mesh = {"../../Sync/3dEngine-assets/cottage/", "cottage_obj.obj"},
-          .transform = {{50, 0, 0}, {0, 45, 0}, {2, 2, 2}},
-          .light = {{1, 0.9, 0.7}, 30.0f},
-      },
-
-      // === DECORATIVE ANIMATED CUBES ===
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{30, 30, 30}, {0, 0, 0}, {2, 2, 2}},
-          .light = {{1, 0, 1}, 20.0f},
-          .rotationAnim = {{1, 1, 0}, 20.0f},
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{-30, 35, -30}, {0, 0, 0}, {3, 3, 3}},
-          .light = {{0, 1, 1}, 20.0f},
-          .rotationAnim = {{0, 1, 1}, 15.0f},
-      },
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 50, 0}, {0, 0, 0}, {1.5, 1.5, 1.5}},
-          .light = {{1, 1, 0}, 20.0f},
-          .rotationAnim = {{1, 0, 1}, 25.0f},
-      },
   };
 
   for (const auto &cfg : objectConfigs) {
