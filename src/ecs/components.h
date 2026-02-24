@@ -38,6 +38,7 @@ struct RotationAnimator {
 struct ParametricAnimator {
   std::vector<glm::vec3> points;
   float speed;
+  float phase;
 };
 
 // NOTE: These are used to generate the above

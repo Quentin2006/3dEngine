@@ -53,7 +53,9 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
         int numSegments = (int)pts.size() - 1;
 
         // totalTime * speed gives us how far along the path we are
-        float globalT = std::fmod(totalTime * anim.speed, (float)numSegments);
+        float globalT = std::fmod(totalTime * anim.speed +
+                                      numSegments * parametricOpt->phase,
+                                  numSegments);
         if (globalT < 0.0f)
           globalT += (float)numSegments;
 
@@ -86,30 +88,32 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
         // Compute tangent for orientation (face direction of travel)
         glm::vec3 tangent = spline::catmullRomTangent(p0, p1, p2, p3, localT);
         tangent = glm::normalize(tangent);
-        
+
         // Convert tangent to yaw/pitch rotation
         float yaw = glm::degrees(std::atan2(-tangent.z, tangent.x));
-        float pitch = glm::degrees(std::asin(glm::clamp(tangent.y, -1.0f, 1.0f)));
-        
+        float pitch =
+            glm::degrees(std::asin(glm::clamp(tangent.y, -1.0f, 1.0f)));
+
         t.rotation = {pitch, yaw, 0.0f};
       }
     }
   }
 }
 
-inline void renderAll(Registry &reg, GLuint modelUniform, GLint diffuseTexUnit, GLint specularTexUnit, GLuint shininessLoc) {
+inline void renderAll(Registry &reg, GLuint modelUniform, GLint diffuseTexUnit,
+                      GLint specularTexUnit, GLuint shininessLoc) {
 
   for (size_t i = 0; i < reg.entityCount(); i++) {
     auto &meshComp = reg.getMesh(i);
     if (meshComp.mesh) {
       glUniformMatrix4fv(modelUniform, 1, GL_FALSE,
                          glm::value_ptr(reg.getTransform(i).matrix));
-      
+
       // Set texture units for specular lighting
       glUniform1i(diffuseTexUnit, 0);  // diffuse texture to unit 0
-      glUniform1i(specularTexUnit, 1);  // specular texture to unit 1
+      glUniform1i(specularTexUnit, 1); // specular texture to unit 1
       glUniform1f(shininessLoc, meshComp.mesh->getShininess());
-      
+
       meshComp.mesh->draw();
     }
   }
