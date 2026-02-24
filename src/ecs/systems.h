@@ -82,6 +82,16 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
 
         auto &t = reg.getTransform(i);
         t.position = spline::catmullRom(p0, p1, p2, p3, localT);
+
+        // Compute tangent for orientation (face direction of travel)
+        glm::vec3 tangent = spline::catmullRomTangent(p0, p1, p2, p3, localT);
+        tangent = glm::normalize(tangent);
+        
+        // Convert tangent to yaw/pitch rotation
+        float yaw = glm::degrees(std::atan2(-tangent.z, tangent.x));
+        float pitch = glm::degrees(std::asin(glm::clamp(tangent.y, -1.0f, 1.0f)));
+        
+        t.rotation = {pitch, yaw, 0.0f};
       }
     }
   }

@@ -5,6 +5,15 @@
 
 namespace spline {
 
+// Evaluate the tangent (first derivative) of Catmull-Rom at parameter t
+inline glm::vec3 catmullRomTangent(const glm::vec3 &p0, const glm::vec3 &p1,
+                                    const glm::vec3 &p2, const glm::vec3 &p3, float t) {
+  float t2 = t * t;
+  return 0.5f * ((-p0 + p2) +
+                  (4.0f * p0 - 10.0f * p1 + 8.0f * p2 - 2.0f * p3) * t +
+                  (-3.0f * p0 + 9.0f * p1 - 9.0f * p2 + 3.0f * p3) * t2);
+}
+
 // Evaluate Catmull-Rom spline at parameter t for 4 control points
 // t in [0, 1], curve passes through p1 (at t=0) and p2 (at t=1)
 inline glm::vec3 catmullRom(const glm::vec3 &p0, const glm::vec3 &p1,

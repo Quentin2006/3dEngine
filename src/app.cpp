@@ -101,13 +101,6 @@ void App::run() {
 
   std::vector<ObjectConfig> objectConfigs = {
 
-      // === TEST: Simple cube at origin ===
-      {
-          .mesh = {"../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj"},
-          .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}},
-          .light = {{1, 1, 1}, 50.0f},
-      },
-
       // === ROLLER COASTER TRACK ===
       {.sweep = {{{0, 5, 0},     // start
                   {20, 5, 20},   // curve out
@@ -154,22 +147,6 @@ void App::run() {
                        {-20, 30, 20},
                        {0, 5, 0}},
                       1.5f}, // speed
-      },
-      // Bugatti rider
-      {
-          .mesh = {"../../Sync/3dEngine-assets/bugatti/", "bugatti.obj"},
-          .transform = {{0, 6, 0}, {0, 0, 0}, {0.3, 0.3, 0.3}},
-          .light = {{1, 0, 0.5}, 30.0f},
-          .parAnim = {{{0, 5, 0},
-                       {20, 5, 20},
-                       {40, 25, 0},
-                       {20, 40, -20},
-                       {0, 20, -40},
-                       {-20, 5, -20},
-                       {-40, 15, 0},
-                       {-20, 30, 20},
-                       {0, 5, 0}},
-                      3.0f}, // speed
       },
       // Car rider
       {
