@@ -25,24 +25,38 @@
 #include <iostream>
 
 Mesh::Mesh(unsigned int textureUniform)
-    : buffer(), vertexCount(0), texture(textureUniform), specularTexture(0),
+    : buffer(), vertexCount(0), imageTexture(textureUniform),
+      specularTexture(textureUniform), diffuseTexture(textureUniform),
       shininess(32.0f) {
+  unsigned char whitePixel[] = {255, 255, 255, 255}; // RGBA white
+
   // Create default white texture (1x1 pixel)
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  glGenTextures(1, &imageTexture);
+  glBindTexture(GL_TEXTURE_2D, imageTexture);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  unsigned char whitePixel[] = {255, 255, 255, 255}; // RGBA white
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                whitePixel);
 
   // Create default white specular texture (1x1 pixel)
   glGenTextures(1, &specularTexture);
   glBindTexture(GL_TEXTURE_2D, specularTexture);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+               whitePixel);
+
+  // Create default white diffuse texture (1x1 pixel)
+  glGenTextures(1, &diffuseTexture);
+  glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -58,23 +72,39 @@ void Mesh::draw() {
 
   // Bind diffuse texture to unit 0
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 
   // Bind specular texture to unit 1
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, specularTexture);
 
+  // Bind image texture to unit 2
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, imageTexture);
+
   glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }
 
-void Mesh::setTexture(const std::string &path) {
+void Mesh::setTexture(const std::string &path, TextureType type) {
   // Delete old texture if exists
-  if (texture != 0) {
-    glDeleteTextures(1, &texture);
+  if (type == TextureType::Diffuse && diffuseTexture != 0) {
+    glDeleteTextures(1, &diffuseTexture);
+  } else if (type == TextureType::Specular && specularTexture != 0) {
+    glDeleteTextures(1, &specularTexture);
+  } else if (type == TextureType::Image && imageTexture != 0) {
+    glDeleteTextures(1, &imageTexture);
   }
 
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  if (type == TextureType::Diffuse) {
+    glGenTextures(1, &diffuseTexture);
+    glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+  } else if (type == TextureType::Specular) {
+    glGenTextures(1, &specularTexture);
+    glBindTexture(GL_TEXTURE_2D, specularTexture);
+  } else if (type == TextureType::Image) {
+    glGenTextures(1, &imageTexture);
+    glBindTexture(GL_TEXTURE_2D, imageTexture);
+  }
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -96,43 +126,6 @@ void Mesh::setTexture(const std::string &path) {
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
     std::cerr << "Failed to load texture: " << path << std::endl;
-    // Fallback to white texture
-    unsigned char whitePixel[] = {255, 255, 255, 255};
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                 whitePixel);
-  }
-  stbi_image_free(data);
-}
-
-void Mesh::setSpecularTexture(const std::string &path) {
-  // Delete old specular texture if exists
-  if (specularTexture != 0) {
-    glDeleteTextures(1, &specularTexture);
-  }
-
-  glGenTextures(1, &specularTexture);
-  glBindTexture(GL_TEXTURE_2D, specularTexture);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                  GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  int width, height, nrChannels;
-  unsigned char *data =
-      stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
-
-  if (data) {
-    std::cerr << "Loading specular texture: " << path << std::endl;
-    GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
-
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    std::cerr << "Failed to load specular texture: " << path << std::endl;
     // Fallback to white texture
     unsigned char whitePixel[] = {255, 255, 255, 255};
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
@@ -169,8 +162,8 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
 
       int material_id = shapes[s].mesh.material_ids[f];
 
-      // Only load texture if material has diffuse texture and we haven't loaded
-      // it yet
+      // Only load texture if material has diffuse texture and we haven't
+      // loaded it yet
       if (material_id >= 0 && !textureLoaded) {
         const std::string &difTexName = materials[material_id].diffuse_texname;
         const std::string &specTexName =
@@ -179,14 +172,14 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
         if (!difTexName.empty()) {
           std::string texturePath = filePath + difTexName;
           std::cerr << "Loading texture: " << texturePath << std::endl;
-          setTexture(texturePath);
+          setTexture(texturePath, TextureType::Diffuse);
           textureLoaded = true;
         }
 
         if (!specTexName.empty()) {
           std::string texturePath = filePath + specTexName;
           std::cerr << "Loading specular texture: " << texturePath << std::endl;
-          setSpecularTexture(texturePath);
+          setTexture(texturePath, TextureType::Specular);
         }
 
         // Load shininess from material
@@ -284,7 +277,8 @@ int Mesh::loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
       tangentRaw = smoothPath[i + 1] - smoothPath[i - 1];
     }
 
-    // Guard against zero-length tangent (duplicate spline samples) to avoid NaN
+    // Guard against zero-length tangent (duplicate spline samples) to avoid
+    // NaN
     glm::vec3 tangent;
     float tangentLen = glm::length(tangentRaw);
     if (tangentLen < 0.0001f) {

@@ -1,0 +1,219 @@
+<DIRECTIONS>
+add comments describing the code
+</DIRECTIONS>
+<Context>
+You receive a selection in neovim that you need to replace with new code.
+The selection's contents may contain notes, incorporate the notes every time if there are some.
+consider the context of the selection and what you are suppose to be implementing
+<SELECTION_LOCATION>
+range(point(1,1),point(63,2))
+</SELECTION_LOCATION>
+<SELECTION_CONTENT>
+#version 330 core
+
+out vec4 FragColor;
+
+in vec2 TexCoord;
+in vec3 FragPos;
+in vec3 FaceNormal;
+
+uniform sampler2D diffuseTexture;
+uniform sampler2D specularTexture;
+uniform float shininess = 32.0;
+uniform vec3 cameraPos;
+
+// not ideal, but were hardcoding in max # of lights
+#define MAX_LIGHTS 128
+
+struct Light {
+  vec3 position;
+  vec3 color;
+  float intensity;
+};
+
+layout(std140) uniform LightBlock {
+  Light lights[MAX_LIGHTS];
+  int count;
+} lightBlock;
+
+void main()
+{
+  vec4 diffuseColor = texture(diffuseTexture, TexCoord);
+  vec4 specColor = texture(specularTexture, TexCoord);
+
+  vec3 norm = normalize(FaceNormal);
+  vec3 viewDir = normalize(cameraPos - FragPos);
+
+  vec3 ambient = diffuseColor.rgb * 0.05;
+  vec3 totalLight = vec3(0.0);
+
+  for (int i = 0; i < lightBlock.count; i++) {
+    vec3 lightDir = normalize(lightBlock.lights[i].position - FragPos);
+    float dist = length(lightBlock.lights[i].position - FragPos);
+    float atten = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
+
+    // Diffuse
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * lightBlock.lights[i].color * diffuseColor.rgb;
+
+    // Blinn-Phong specular
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(norm, halfDir), 0.0), shininess);
+    vec3 specular = spec * specColor.rgb * lightBlock.lights[i].color;
+
+    totalLight += (diffuse + specular) * atten * lightBlock.lights[i].intensity;
+  }
+
+  vec3 finalColor = ambient + totalLight;
+
+  if (lightBlock.count == 0) {
+    finalColor = diffuseColor.rgb;
+  }
+
+  FragColor = vec4(min(finalColor, vec3(1.0)), 1.0);
+}
+</SELECTION_CONTENT>
+<FILE_CONTAINING_SELECTION>
+#version 330 core
+
+out vec4 FragColor;
+
+in vec2 TexCoord;
+in vec3 FragPos;
+in vec3 FaceNormal;
+
+uniform sampler2D diffuseTexture;
+uniform sampler2D specularTexture;
+uniform float shininess = 32.0;
+uniform vec3 cameraPos;
+
+// not ideal, but were hardcoding in max # of lights
+#define MAX_LIGHTS 128
+
+struct Light {
+  vec3 position;
+  vec3 color;
+  float intensity;
+};
+
+layout(std140) uniform LightBlock {
+  Light lights[MAX_LIGHTS];
+  int count;
+} lightBlock;
+
+void main()
+{
+  vec4 diffuseColor = texture(diffuseTexture, TexCoord);
+  vec4 specColor = texture(specularTexture, TexCoord);
+
+  vec3 norm = normalize(FaceNormal);
+  vec3 viewDir = normalize(cameraPos - FragPos);
+
+  vec3 ambient = diffuseColor.rgb * 0.05;
+  vec3 totalLight = vec3(0.0);
+
+  for (int i = 0; i < lightBlock.count; i++) {
+    vec3 lightDir = normalize(lightBlock.lights[i].position - FragPos);
+    float dist = length(lightBlock.lights[i].position - FragPos);
+    float atten = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
+
+    // Diffuse
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * lightBlock.lights[i].color * diffuseColor.rgb;
+
+    // Blinn-Phong specular
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(norm, halfDir), 0.0), shininess);
+    vec3 specular = spec * specColor.rgb * lightBlock.lights[i].color;
+
+    totalLight += (diffuse + specular) * atten * lightBlock.lights[i].intensity;
+  }
+
+  vec3 finalColor = ambient + totalLight;
+
+  if (lightBlock.count == 0) {
+    finalColor = diffuseColor.rgb;
+  }
+
+  FragColor = vec4(min(finalColor, vec3(1.0)), 1.0);
+}
+</FILE_CONTAINING_SELECTION>
+
+</Context>
+
+<Location><File>/home/qscheetz/Documents/3dEngine/src/shaders/shader.frag</File><Function>range(point(1,1),point(63,2))</Function></Location>
+<FunctionText>#version 330 core
+
+out vec4 FragColor;
+
+in vec2 TexCoord;
+in vec3 FragPos;
+in vec3 FaceNormal;
+
+uniform sampler2D diffuseTexture;
+uniform sampler2D specularTexture;
+uniform float shininess = 32.0;
+uniform vec3 cameraPos;
+
+// not ideal, but were hardcoding in max # of lights
+#define MAX_LIGHTS 128
+
+struct Light {
+  vec3 position;
+  vec3 color;
+  float intensity;
+};
+
+layout(std140) uniform LightBlock {
+  Light lights[MAX_LIGHTS];
+  int count;
+} lightBlock;
+
+void main()
+{
+  vec4 diffuseColor = texture(diffuseTexture, TexCoord);
+  vec4 specColor = texture(specularTexture, TexCoord);
+
+  vec3 norm = normalize(FaceNormal);
+  vec3 viewDir = normalize(cameraPos - FragPos);
+
+  vec3 ambient = diffuseColor.rgb * 0.05;
+  vec3 totalLight = vec3(0.0);
+
+  for (int i = 0; i < lightBlock.count; i++) {
+    vec3 lightDir = normalize(lightBlock.lights[i].position - FragPos);
+    float dist = length(lightBlock.lights[i].position - FragPos);
+    float atten = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
+
+    // Diffuse
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * lightBlock.lights[i].color * diffuseColor.rgb;
+
+    // Blinn-Phong specular
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float spec = pow(max(dot(norm, halfDir), 0.0), shininess);
+    vec3 specular = spec * specColor.rgb * lightBlock.lights[i].color;
+
+    totalLight += (diffuse + specular) * atten * lightBlock.lights[i].intensity;
+  }
+
+  vec3 finalColor = ambient + totalLight;
+
+  if (lightBlock.count == 0) {
+    finalColor = diffuseColor.rgb;
+  }
+
+  FragColor = vec4(min(finalColor, vec3(1.0)), 1.0);
+}</FunctionText>
+<MustObey>
+NEVER alter any file other than TEMP_FILE.
+never provide the requested changes as conversational output. Return only the code.
+ONLY provide requested changes by writing the change to TEMP_FILE
+
+never attempt to read TEMP_FILE.
+It is purely for output.
+Previous contents, which may not exist, can be written over without worry
+After writing TEMP_FILE once you should be done.  Be done and end the session.
+
+</MustObey>
+<TEMP_FILE>./tmp/99-6536</TEMP_FILE>

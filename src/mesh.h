@@ -10,6 +10,8 @@ struct subMesh {
   unsigned int texture;
 };
 
+enum TextureType { Diffuse, Specular, Image };
+
 class Mesh {
 public:
   Mesh(unsigned int textureUniform = 0);
@@ -33,22 +35,15 @@ public:
   float getShininess() const { return shininess; }
 
 private:
-  void setTexture(const std::string &path);
-  void setSpecularTexture(const std::string &path);
+  void setTexture(const std::string &path, TextureType type);
 
-  /**
-   * @brief will genearte a list of points used to reperesent a circle centered
-   * at the orgin
-   *
-   * @param res # of points to generate
-   * @param radius the distance from orgin
-   */
   const std::vector<glm::vec3> generateCircle(int res, float radius);
 
   vertexBuffer buffer;
   size_t vertexCount;
-  unsigned int texture;
+  unsigned int imageTexture;
   unsigned int specularTexture;
+  unsigned int diffuseTexture;
   float shininess;
 
   std::vector<Vertex> vertices;

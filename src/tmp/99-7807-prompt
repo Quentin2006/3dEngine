@@ -1,3 +1,26 @@
+<DIRECTIONS>
+make the speeds all .5, and change all the lights to be red
+</DIRECTIONS>
+<Context>
+You receive a selection in neovim that you need to replace with new code.
+The selection's contents may contain notes, incorporate the notes every time if there are some.
+consider the context of the selection and what you are suppose to be implementing
+<SELECTION_LOCATION>
+range(point(116,1),point(125,72))
+</SELECTION_LOCATION>
+<SELECTION_CONTENT>
+      {.light = {{1, 0, 0}, 10}, .parAnim = {coasterPoints, 1, .1}},
+      {.light = {{0, 1, 0}, 10}, .parAnim = {coasterPoints, 1, .2}},
+      {.light = {{0, 0, 1}, 10}, .parAnim = {coasterPoints, 1, .3}},
+      {.light = {{1, 1, 0}, 10}, .parAnim = {coasterPoints, 1, .4}},
+      {.light = {{0, 1, 1}, 10}, .parAnim = {coasterPoints, 1, .5}},
+      {.light = {{1, 0, 1}, 10}, .parAnim = {coasterPoints, 1, .6}},
+      {.light = {{1, 1, 1}, 10}, .parAnim = {coasterPoints, 1, .7}},
+      {.light = {{1, 0.5, 0}, 10}, .parAnim = {coasterPoints, 1, .8}},
+      {.light = {{0.5, 0, 1}, 10}, .parAnim = {coasterPoints, 1, .9}},
+      {.light = {{0.5, 0.5, 1}, 10}, .parAnim = {coasterPoints, 1, 0}},
+</SELECTION_CONTENT>
+<FILE_CONTAINING_SELECTION>
 #include "app.h"
 #include "ecs/components.h"
 #include "ecs/systems.h"
@@ -65,7 +88,10 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
     registry.getMesh(obj).mesh =
         resourceManager.loadMesh(cfg.sweep.points, cfg.sweep.pathSegments,
                                  cfg.sweep.circleSegments, cfg.sweep.radius);
+  } else {
+    std::cerr << "Error loading object" << std::endl;
   }
+
   registry.getTransform(obj) = cfg.transform;
 
   if (cfg.light.intensity != 0.f) {
@@ -110,18 +136,17 @@ void App::run() {
   std::vector<ObjectConfig> objectConfigs = {
       // === ROLLER COASTER TRACK ===
       {.sweep = {coasterPoints, 0.4f, 3000, 24}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .1}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .2}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .3}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .4}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .5}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .6}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .7}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .8}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, .9}},
-      {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, 0}},
-
-      {.mesh = {{"../../Sync/3dEngine-assets/3d-cubes/"}, {"cube-tex.obj"}}}};
+      {.light = {{1, 0, 0}, 10}, .parAnim = {coasterPoints, 1, .1}},
+      {.light = {{0, 1, 0}, 10}, .parAnim = {coasterPoints, 1, .2}},
+      {.light = {{0, 0, 1}, 10}, .parAnim = {coasterPoints, 1, .3}},
+      {.light = {{1, 1, 0}, 10}, .parAnim = {coasterPoints, 1, .4}},
+      {.light = {{0, 1, 1}, 10}, .parAnim = {coasterPoints, 1, .5}},
+      {.light = {{1, 0, 1}, 10}, .parAnim = {coasterPoints, 1, .6}},
+      {.light = {{1, 1, 1}, 10}, .parAnim = {coasterPoints, 1, .7}},
+      {.light = {{1, 0.5, 0}, 10}, .parAnim = {coasterPoints, 1, .8}},
+      {.light = {{0.5, 0, 1}, 10}, .parAnim = {coasterPoints, 1, .9}},
+      {.light = {{0.5, 0.5, 1}, 10}, .parAnim = {coasterPoints, 1, 0}},
+  };
 
   for (const auto &cfg : objectConfigs) {
     loadObjectFromConfig(cfg);
@@ -218,3 +243,30 @@ void App::moveCamera(float deltaTime) {
   if (input.right)
     camera.rotateYaw(rotAmount);
 }
+</FILE_CONTAINING_SELECTION>
+
+</Context>
+
+<Location><File>/home/qscheetz/Documents/3dEngine/src/app.cpp</File><Function>range(point(116,1),point(125,72))</Function></Location>
+<FunctionText>      {.light = {{1, 0, 0}, 10}, .parAnim = {coasterPoints, 1, .1}},
+      {.light = {{0, 1, 0}, 10}, .parAnim = {coasterPoints, 1, .2}},
+      {.light = {{0, 0, 1}, 10}, .parAnim = {coasterPoints, 1, .3}},
+      {.light = {{1, 1, 0}, 10}, .parAnim = {coasterPoints, 1, .4}},
+      {.light = {{0, 1, 1}, 10}, .parAnim = {coasterPoints, 1, .5}},
+      {.light = {{1, 0, 1}, 10}, .parAnim = {coasterPoints, 1, .6}},
+      {.light = {{1, 1, 1}, 10}, .parAnim = {coasterPoints, 1, .7}},
+      {.light = {{1, 0.5, 0}, 10}, .parAnim = {coasterPoints, 1, .8}},
+      {.light = {{0.5, 0, 1}, 10}, .parAnim = {coasterPoints, 1, .9}},
+      {.light = {{0.5, 0.5, 1}, 10}, .parAnim = {coasterPoints, 1, 0}},</FunctionText>
+<MustObey>
+NEVER alter any file other than TEMP_FILE.
+never provide the requested changes as conversational output. Return only the code.
+ONLY provide requested changes by writing the change to TEMP_FILE
+
+never attempt to read TEMP_FILE.
+It is purely for output.
+Previous contents, which may not exist, can be written over without worry
+After writing TEMP_FILE once you should be done.  Be done and end the session.
+
+</MustObey>
+<TEMP_FILE>./tmp/99-7807</TEMP_FILE>

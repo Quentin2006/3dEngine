@@ -1,4 +1,3 @@
-
 #version 330 core
 
 out vec4 FragColor;
@@ -7,7 +6,6 @@ in vec2 TexCoord;
 in vec3 FragPos;
 in vec3 FaceNormal;
 
-uniform sampler2D imageTexture;
 uniform sampler2D diffuseTexture;
 uniform sampler2D specularTexture;
 uniform float shininess = 32.0;
@@ -31,9 +29,7 @@ layout(std140) uniform LightBlock {
 
 void main()
 {
-  vec3 texColor = texture(imageTexture, TexCoord).rgb;
-
-  // Sample diffuse and specular textures using texture coordinates
+  // Sample diffuse (albedo) and specular textures using texture coordinates
   vec4 diffuseColor = texture(diffuseTexture, TexCoord);
   vec4 specColor = texture(specularTexture, TexCoord);
 
@@ -50,11 +46,11 @@ void main()
     // Calculate light direction and distance from fragment to light
     vec3 lightDir = normalize(lightBlock.lights[i].position - FragPos);
     float dist = length(lightBlock.lights[i].position - FragPos);
-
+    
     // Calculate quadratic attenuation based on distance
     float atten = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
 
-    // Diffuse component: lambertian shading (dot product of normal and light direction)
+    // Diffuse component: Lambertian shading (dot product of normal and light direction)
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightBlock.lights[i].color * diffuseColor.rgb;
 
@@ -68,9 +64,9 @@ void main()
   }
 
   // Combine ambient and accumulated light contributions
-  vec3 finalColor = (ambient + totalLight) * texColor;
+  vec3 finalColor = ambient + totalLight;
 
-  // if no lights present, use just diffuse color (unlit)
+  // Fallback: if no lights present, use just diffuse color (unlit)
   if (lightBlock.count == 0) {
     finalColor = diffuseColor.rgb;
   }
