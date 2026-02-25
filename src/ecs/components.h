@@ -13,7 +13,7 @@ struct MeshComp {
 
 struct Transform {
   glm::vec3 position;
-  glm::vec3 rotation;
+  glm::vec3 rotation; // degrees
   glm::vec3 scale;
   int parrentId; // any neg # will be no parrent
   glm::mat4 matrix{1.f};

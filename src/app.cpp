@@ -6,7 +6,11 @@
 #include "uniformBuffer.h"
 #include <GLFW/glfw3.h>
 #include <chrono>
+#include <cstdlib>
+#include <glm/common.hpp>
+#include <glm/ext/scalar_constants.hpp>
 #include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_float4.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -63,6 +67,61 @@ std::vector<ObjectConfig> genRailsForCoaster(const std::vector<glm::vec3> &pts,
   }
 
   return coasterRails;
+}
+
+// will generate a tree with numBranches and numLeaves at pos
+void genTree(const glm::vec3 &startPos, const glm::vec3 &endPos, float width,
+             int numLevels, int numPerLevel,
+             std::vector<ObjectConfig> &resTree) {
+
+  if (numLevels <= 0) {
+    return;
+  }
+
+  // add main log
+  if (resTree.size() == 0) {
+    resTree.push_back({
+        .transform = {startPos, {0, 0, 0}, {1, 1, 1}, -1, 1.f},
+        .sweep = {{startPos, endPos}, width, 10, 20, {0.7f, 0.7f, 0.7f}},
+    });
+    width *= 0.3f;
+    genTree(startPos, endPos, width * 0.3, numLevels - 1, numPerLevel, resTree);
+    return;
+  }
+
+  // for this log, add branches
+  for (int i = 0; i < numPerLevel; i++) {
+    // get random start x,y,z value on the log by linear interpolating
+    glm::vec3 branchStart = glm::mix(startPos, endPos, rand() % 100 / 100.f);
+
+    // get random end x,y,z value extending outward from branch start
+    float branchLen = glm::distance(startPos, endPos) * 0.5f;
+
+    // rotate direction to random direction
+    glm::vec3 direction = branchStart - startPos;
+
+    glm::vec3 axis =
+        glm::normalize(glm::vec3{float(rand() % 100 - 50), float(rand() % 100),
+                                 float(rand() % 100 - 50)});
+
+    direction = glm::normalize(
+        glm::rotate(glm::mat4{1.f}, glm::radians<float>(rand() % 360), axis) *
+        glm::vec4{direction, 0.f});
+
+    direction = glm::normalize(axis * direction);
+
+    glm::vec3 branchEnd = branchStart + direction * branchLen;
+
+    // add branch to resTree
+    resTree.push_back({
+        .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}, -1, 1.f},
+        .sweep = {{branchStart, branchEnd}, width, 10, 20, {0.7f, 0.7f, 0.7f}},
+    });
+
+    // for this branch, add leaves
+    genTree(branchStart, branchEnd, width * 0.5f, numLevels - 1, numPerLevel,
+            resTree);
+  }
 }
 
 void fps(float deltaTime) {
@@ -159,6 +218,13 @@ void App::run() {
 
   // add lgihts to objectConfigs
   for (const auto &cfg : genLightsForCoaster(coasterPoints, 10)) {
+    objectConfigs.push_back(cfg);
+  }
+
+  std::vector<ObjectConfig> tree = {};
+  genTree(glm::vec3{0, 0, 0}, glm::vec3{0, 5, 0}, .25, 4, 10, tree);
+
+  for (const auto &cfg : tree) {
     objectConfigs.push_back(cfg);
   }
 
