@@ -336,6 +336,39 @@ int Mesh::loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
     }
   }
 
+  int last = smoothPath.size() - 1;
+  glm::vec3 tangentAtStart = glm::normalize(smoothPath[1] - smoothPath[0]);
+  glm::vec3 tangentAtEnd =
+      glm::normalize(smoothPath[last] - smoothPath[last - 1]);
+  if (!cyclic) {
+    // START CAP - at circles[0]
+    // Center is smoothPath[0]
+    // Normal points opposite to sweep direction (along -tangent)
+    // Reverse winding order so normals face outward
+    for (int j = 0; j < circleSegments; ++j) {
+      int next_j = (j + 1) % circleSegments;
+
+      // Build triangles: center → next_j → j (reversed winding)
+      vertices.push_back(
+          {circles[0][next_j], glm::vec2(0.0f), -tangentAtStart});
+      vertices.push_back({circles[0][j], glm::vec2(0.0f), -tangentAtStart});
+      vertices.push_back({smoothPath[0], glm::vec2(0.0f), -tangentAtStart});
+    }
+
+    // END CAP - at circles[last]
+    // Center is smoothPath[last]
+    // Normal points along sweep direction
+    for (int j = 0; j < circleSegments; ++j) {
+      int next_j = (j + 1) % circleSegments;
+
+      // Build triangles: center → j → next_j (normal winding)
+      vertices.push_back({smoothPath[last], glm::vec2(0.0f), tangentAtEnd});
+      vertices.push_back({circles[last][j], glm::vec2(0.0f), tangentAtEnd});
+      vertices.push_back(
+          {circles[last][next_j], glm::vec2(0.0f), tangentAtEnd});
+    }
+  }
+
   buffer.uploadVertices(vertices);
   vertexCount = vertices.size();
   return vertexCount;
