@@ -78,11 +78,17 @@ void genTree(const glm::vec3 &startPos, const glm::vec3 &endPos, float width,
     return;
   }
 
+  glm::vec3 lightBrown = {0.76, 0.60, 0.42};
+  glm::vec3 darkBrown = {0.36, 0.22, 0.12};
+
   // add main log
   if (resTree.size() == 0) {
+
+    // set to brown if we're not the last branch
+    glm::vec3 color = glm::mix(lightBrown, darkBrown, float(rand() % 100));
     resTree.push_back({
         .transform = {startPos, {0, 0, 0}, {1, 1, 1}, -1, 1.f},
-        .sweep = {{startPos, endPos}, width, 10, 20, {0.7f, 0.7f, 0.7f}},
+        .sweep = {{startPos, endPos}, width, 10, 20, color},
     });
     width *= 0.3f;
     genTree(startPos, endPos, width * 0.3, numLevels - 1, numPerLevel, resTree);
@@ -91,8 +97,23 @@ void genTree(const glm::vec3 &startPos, const glm::vec3 &endPos, float width,
 
   // for this log, add branches
   for (int i = 0; i < numPerLevel; i++) {
+
+    glm::vec3 color;
+
+    // set to brown if we're not the last branch
+    color = glm::mix(lightBrown, darkBrown, float(rand() % 100));
+
+    // override color if we're the last branch
+    if (numLevels == 1) {
+      glm::vec3 lightGreen = {0.12, 0.42, 0.16};
+      glm::vec3 darkGreen = {0.55, 0.80, 0.35};
+
+      // set to brown if we're not the last branch
+      color = glm::mix(lightGreen, darkGreen, float(rand() % 100));
+    }
+
     // get random start x,y,z value on the log by linear interpolating
-    glm::vec3 branchStart = glm::mix(startPos, endPos, rand() % 100 / 100.f);
+    glm ::vec3 branchStart = glm::mix(startPos, endPos, rand() % 100 / 100.f);
 
     // get random end x,y,z value extending outward from branch start
     float branchLen = glm::distance(startPos, endPos) * 0.5f;
@@ -115,7 +136,7 @@ void genTree(const glm::vec3 &startPos, const glm::vec3 &endPos, float width,
     // add branch to resTree
     resTree.push_back({
         .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}, -1, 1.f},
-        .sweep = {{branchStart, branchEnd}, width, 10, 20, {0.7f, 0.7f, 0.7f}},
+        .sweep = {{branchStart, branchEnd}, width, 10, 20, color},
     });
 
     // for this branch, add leaves
