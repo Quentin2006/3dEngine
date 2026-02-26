@@ -2,6 +2,7 @@
 #include "ecs/components.h"
 #include "ecs/registry.h"
 #include "ecs/systems.h"
+#include "gen.h"
 #include "resource_manager.h"
 #include "uniformBuffer.h"
 #include <GLFW/glfw3.h>
@@ -22,145 +23,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-// === NOTE: Helper functions ===
-
-std::vector<ObjectConfig>
-genLightsForCoaster(const std::vector<glm::vec3> &coasterPoints, int count) {
-  std::vector<ObjectConfig> coasterLights = {};
-
-  for (int i = 0; i < count; i++) {
-    float phase = (float)i / count;
-    coasterLights.push_back(
-        {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, phase}});
-  }
-
-  return coasterLights;
-}
-
-std::vector<ObjectConfig> genRailsForCoaster(const std::vector<glm::vec3> &pts,
-                                             int count) {
-  std::vector<ObjectConfig> coasterRails = {};
-
-  if (pts.size() < 2) {
-    return {};
-  }
-
-  for (int i = 0; i < count; i++) {
-    float phase = (float)i / count;
-    int numSegments = (int)pts.size() - 1;
-    float t = std::fmod(numSegments * phase, numSegments);
-
-    // Handle negative time by wrapping to positive range
-    if (t < 0.0f)
-      t += (float)numSegments;
-
-    auto [pos, _] = spline::calculatePosOnSpline(true, numSegments, pts, t);
-
-    // NOTE: not sure why we need to divide by 2
-    const glm::vec3 floorPos = {pos.x / 2, 0.f, pos.z / 2};
-    const glm::vec3 topPos = {pos.x / 2, pos.y * 1.05, pos.z / 2};
-
-    coasterRails.push_back({
-        .transform = {floorPos, {0, 0, 0}, {1, 1, 1}, -1, 1.f},
-        .sweep = {{floorPos, topPos}, 0.25, 10, 20, {0.7f, 0.7f, 0.7f}},
-    });
-  }
-
-  return coasterRails;
-}
-
-// will generate a tree with numBranches and numLeaves at pos
-// FIXME: this needs to be memozied or tabulated for better preformance
-void genTree(const glm::vec3 &startPos, const glm::vec3 &endPos, float width,
-             int numLevels, int numPerLevel,
-             std::vector<ObjectConfig> &resTree) {
-
-  if (numLevels <= 0) {
-    return;
-  }
-
-  glm::vec3 lightBrown = {0.76, 0.60, 0.42};
-  glm::vec3 darkBrown = {0.36, 0.22, 0.12};
-  glm::vec3 color = glm::mix(lightBrown, darkBrown, float(rand() % 100) / 100);
-
-  int circleSegments = std::max(3, 3 + numLevels * 3);
-
-  // add main log
-  if (resTree.size() == 0) {
-
-    // set to brown if we're not the last branch
-    resTree.push_back({
-        .transform = {startPos, {0, 0, 0}, {1, 1, 1}, -1, 1.f},
-        .sweep = {{startPos, endPos}, width, 10, circleSegments, color},
-    });
-    width *= 0.3f;
-    genTree(startPos, endPos, width * 0.3, numLevels - 1, numPerLevel, resTree);
-    return;
-  }
-
-  // for this log, add branches
-  for (int i = 0; i < numPerLevel; i++) {
-
-    // override color if we're the last branch
-    if (numLevels == 1) {
-      glm::vec3 lightGreen = {0.12, 0.42, 0.16};
-      glm::vec3 darkGreen = {0.55, 0.80, 0.35};
-
-      // set to brown if we're not the last branch
-      color = glm::mix(lightGreen, darkGreen, float(rand() % 100) / 100);
-    }
-
-    // get random start x,y,z value on the log by linear interpolating
-    // want it to start 30% up the startPos and 95% end pos
-    glm ::vec3 branchStart =
-        glm::mix(glm::mix(startPos, endPos, 0.3f),
-                 glm::mix(startPos, endPos, 0.95f), rand() % 100 / 100.f);
-
-    // get random end x,y,z value extending outward from branch start
-    float branchLen = glm::distance(startPos, endPos) * 0.5f;
-
-    glm::vec3 randomUp =
-        normalize(glm::vec3{rand() % 100, rand() % 100, rand() % 100});
-
-    // rotate direction to random direction
-    glm::vec3 direction = branchStart - startPos;
-
-    direction = glm::normalize(glm::cross(randomUp, direction));
-
-    glm::vec3 axis = glm::normalize(glm::vec3{
-        float(rand() % 100), float(rand() % 100), float(rand() % 100)});
-
-    direction = glm::normalize(
-        glm::rotate(glm::mat4{1.f}, glm::radians<float>(rand() % 360), axis) *
-        glm::vec4{direction, 0.f});
-
-    direction = glm::normalize(axis * direction);
-
-    glm::vec3 branchEnd = branchStart + direction * branchLen;
-
-    // add branch to resTree
-    resTree.push_back({
-        .transform = {{0, 0, 0}, {0, 0, 0}, {1, 1, 1}, -1, 1.f},
-        .sweep = {{branchStart, branchEnd}, width, 10, circleSegments, color},
-    });
-
-    // for this branch, add leaves
-    genTree(branchStart, branchEnd, width * 0.5f, numLevels - 1, numPerLevel,
-            resTree);
-  }
-}
-
-void fps(float deltaTime) {
-  static float fpsTimer = 0;
-  fpsTimer += deltaTime;
-
-  if (fpsTimer >= 1) {
-    std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
-    fpsTimer = 0;
-  }
-}
-
-// === NOTE: End of helper functions ===
+void fps(float deltaTime);
 
 App::App(int width, int height, const std::string &title)
     : window(width, height, title), shader(),
@@ -241,24 +104,32 @@ void App::run() {
       // === ROLLER COASTER TRACK ===
       {.sweep = {coasterPoints, 0.4f, 3000, 24, {1, 0, 1}}},
 
+      {.mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
+       .transform = {{0, 20, 0}, {0, 0, 0}, {.2, .2, .2}},
+       .parAnim = {coasterPoints, .5f, 0.f}},
+
   };
 
   // add lgihts to objectConfigs
-  // for (const auto &cfg : genLightsForCoaster(coasterPoints, 10)) {
-  //   objectConfigs.push_back(cfg);
-  // }
-
-  std::vector<ObjectConfig> tree = {};
-  genTree(glm::vec3{0, 0, 0}, glm::vec3{0, 5, 0}, .25, 4, 5, tree);
-  for (const auto &cfg : tree) {
+  for (const auto &cfg : genLightsForCoaster(coasterPoints, 10)) {
     objectConfigs.push_back(cfg);
   }
+
+  // for (int i = 0; i < 1; i++) {
+  //
+  //   auto tree = genTree(glm::vec3{i * 5, i, 0}, 1.0f + i, 0.25f, 4, 7);
+  //
+  //   for (const auto &cfg : tree) {
+  //     objectConfigs.push_back(cfg);
+  //   }
+  // }
 
   for (const auto &cfg : genRailsForCoaster(coasterPoints, 10)) {
     objectConfigs.push_back(cfg);
   }
 
   // LOAD MESHES
+  std::cerr << "Loading meshes: " << objectConfigs.size() << std::endl;
   for (const auto &cfg : objectConfigs) {
     loadObjectFromConfig(cfg);
   }

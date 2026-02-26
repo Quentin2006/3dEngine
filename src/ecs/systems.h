@@ -77,7 +77,8 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
 
         // Interpolate position along the spline
         auto &t = reg.getTransform(i);
-        t.position = pos;
+
+        t.position = pos + t.offset;
 
         // Convert tangent vector to yaw/pitch rotation angles
         // yaw = horizontal direction, pitch = vertical angle

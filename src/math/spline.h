@@ -43,7 +43,7 @@ inline glm::vec3 catmullRom(const glm::vec3 &p0, const glm::vec3 &p1,
 inline std::vector<glm::vec3> subdivide(const std::vector<glm::vec3> &points,
                                         int totalSamples, bool cyclic = false) {
   std::vector<glm::vec3> result;
-  result.reserve(totalSamples);
+  result.reserve(totalSamples + 1);
 
   if (points.size() < 2)
     return points;
@@ -78,6 +78,11 @@ inline std::vector<glm::vec3> subdivide(const std::vector<glm::vec3> &points,
     }
 
     result.push_back(catmullRom(p0, p1, p2, p3, localT));
+  }
+
+  // For non-cyclic paths, ensure we reach the exact endpoint
+  if (!cyclic && totalSamples > 0) {
+    result.push_back(points.back());
   }
 
   // For cyclic paths, close the loop
