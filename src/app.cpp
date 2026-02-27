@@ -17,6 +17,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <ostream>
+#include <regex>
 #include <vector>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -26,14 +27,18 @@
 void fps(float deltaTime);
 
 App::App(int width, int height, const std::string &title)
-    : window(width, height, title), shader(),
-      camera(45.f, width, height, 0.1f, 100000.f), frameCounter(0) {
+    : window(width, height, title), shader(), frameCounter(0) {
+
   if (!gladLoadGLLoader((void *(*)(const char *))glfwGetProcAddress)) {
     std::cerr << "Failed to initialize GLAD" << std::endl;
     exit(-1);
   }
   // load the shaders
   shader.loadShaders();
+
+  // init camera
+  cameras.push_back(Camera(45.f, width, height));
+  cameraIndex = 0;
 
   // CONFIG
   glViewport(0, 0, window.getWidth(), window.getHeight());
@@ -65,6 +70,11 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
         cfg.sweep.radius, cfg.sweep.color);
   }
   registry.getTransform(obj) = cfg.transform;
+
+  if (cfg.camera.FOV > 0.f) {
+    registry.getCamera(obj) =
+        Camera(cfg.camera.FOV, window.getWidth(), window.getWidth());
+  }
 
   if (cfg.light.intensity != 0.f) {
     registry.getLight(obj) = cfg.light;
@@ -105,9 +115,9 @@ void App::run() {
       {.sweep = {coasterPoints, 0.4f, 3000, 24, {1, 0, 1}}},
 
       {.mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
-       .transform = {{0, 20, 0}, {0, 0, 0}, {.2, .2, .2}},
-       .parAnim = {coasterPoints, .5f, 0.f}},
-
+       .transform = {{0, 20, 0}, {0, 0, 0}, {.2, .2, .2}, -1},
+       .parAnim = {coasterPoints, .5f, 0.f},
+       .camera = {45.f}},
   };
 
   // add lgihts to objectConfigs
@@ -115,14 +125,9 @@ void App::run() {
     objectConfigs.push_back(cfg);
   }
 
-  // for (int i = 0; i < 1; i++) {
-  //
-  //   auto tree = genTree(glm::vec3{i * 5, i, 0}, 1.0f + i, 0.25f, 4, 7);
-  //
-  //   for (const auto &cfg : tree) {
-  //     objectConfigs.push_back(cfg);
-  //   }
-  // }
+  for (const auto &cfg : genTree(glm::vec3{0, 0, 0}, 3.0f, 0.25f, 4, 7)) {
+    objectConfigs.push_back(cfg);
+  }
 
   for (const auto &cfg : genRailsForCoaster(coasterPoints, 10)) {
     objectConfigs.push_back(cfg);
@@ -143,7 +148,7 @@ void App::run() {
         std::chrono::duration<float>(currentTime - prevTime).count();
     prevTime = currentTime;
     totalTime += deltaTime;
-    fps(deltaTime);
+    // fps(deltaTime);
 
     // clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -176,8 +181,8 @@ void App::run() {
     lightUniformBuffer.uploadData(&lightBlock, sizeof(LightBlock));
 
     CameraBlock cameraBlock{
-        camera.getViewMatrix(),
-        camera.getProjectionMatrix(),
+        cameras[cameraIndex].getViewMatrix(),
+        cameras[cameraIndex].getProjectionMatrix(),
     };
 
     // ensure its bounded
@@ -187,7 +192,7 @@ void App::run() {
 
     // Set camera position for specular lighting
     glUniform3fv(shader.getUniformLocation("cameraPos"), 1,
-                 glm::value_ptr(camera.getPosition()));
+                 glm::value_ptr(cameras[cameraIndex].getPosition()));
 
     shader.use();
     renderAll(registry, shader.getUniformLocation("model"),
@@ -205,23 +210,27 @@ void App::moveCamera(float deltaTime) {
   float rotAmount = ROTATION_SPEED * deltaTime;
 
   if (input.w)
-    camera.moveForward(moveAmount);
+    cameras[cameraIndex].moveForward(moveAmount);
   if (input.s)
-    camera.moveForward(-moveAmount);
+    cameras[cameraIndex].moveForward(-moveAmount);
   if (input.a)
-    camera.moveRight(-moveAmount);
+    cameras[cameraIndex].moveRight(-moveAmount);
   if (input.d)
-    camera.moveRight(moveAmount);
+    cameras[cameraIndex].moveRight(moveAmount);
   if (input.q)
-    camera.moveUp(moveAmount);
+    cameras[cameraIndex].moveUp(moveAmount);
   if (input.e)
-    camera.moveUp(-moveAmount);
+    cameras[cameraIndex].moveUp(-moveAmount);
   if (input.up)
-    camera.rotatePitch(rotAmount);
+    cameras[cameraIndex].rotatePitch(rotAmount);
   if (input.down)
-    camera.rotatePitch(-rotAmount);
+    cameras[cameraIndex].rotatePitch(-rotAmount);
   if (input.left)
-    camera.rotateYaw(-rotAmount);
+    cameras[cameraIndex].rotateYaw(-rotAmount);
   if (input.right)
-    camera.rotateYaw(rotAmount);
+    cameras[cameraIndex].rotateYaw(rotAmount);
+  if (input.c) {
+    cameraIndex = (cameraIndex + 1) % cameras.size();
+    std::cerr << cameraIndex << std::endl;
+  }
 }

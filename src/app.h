@@ -20,6 +20,7 @@ struct InputState {
   bool w = false, a = false, s = false, d = false;
   bool q = false, e = false;
   bool up = false, down = false, left = false, right = false;
+  bool c = false;
 };
 
 struct ObjectConfig {
@@ -36,6 +37,7 @@ struct ObjectConfig {
   RotationAnimator rotationAnim{{0, 0, 0}, 0.f};
   Sweep sweep{{}, 0, 0, 0, {1, 1, 1}};
   ParametricAnimator parAnim{{}, 0.f, 0.f};
+  CameraConf camera{-1.f};
 };
 
 struct Controls {
@@ -55,6 +57,9 @@ struct Controls {
       GLFW_KEY_LEFT; // Look left (rotate around Y)
   static const int ROTATE_YAW_RIGHT =
       GLFW_KEY_RIGHT; // Look right (rotate around Y)
+
+  // Misc binds
+  static const int NEXT_CAMERA = GLFW_KEY_C;
 };
 
 class App {
@@ -65,9 +70,11 @@ public:
   void moveCamera(float deltaTime);
 
   Window *getWindow() { return &window; };
-  Camera *getCamera() { return &camera; };
+  std::vector<Camera> *getCameras() { return &cameras; };
   InputState *getInputState() { return &input; };
   Shader *getShader() { return &shader; };
+
+  int getCameraIndex() { return cameraIndex; }
 
 private:
   bool loadShaders();
@@ -76,7 +83,8 @@ private:
 
   Window window;
   Shader shader;
-  Camera camera;
+  std::vector<Camera> cameras;
+  uint32_t cameraIndex;
   InputState input;
   unsigned int frameCounter;
   ResourceManager resourceManager;
@@ -128,6 +136,9 @@ inline void key_callback(GLFWwindow *window, int key, int, int action, int) {
   case Controls::ROTATE_YAW_RIGHT:
     app->getInputState()->right = pressed;
     return;
+  case Controls::NEXT_CAMERA:
+    app->getInputState()->c = pressed;
+    return;
   default:
     return;
   }
@@ -145,11 +156,15 @@ inline void framebuffer_size_callback(GLFWwindow *window, int width,
   app->getWindow()->setHeight(height);
 
   // UPDATE PROJECTION MATRIX
-  app->getCamera()->updateAspect(width, height);
+  for (auto &camera : *app->getCameras()) {
+    camera.updateAspect(width, height);
+  }
 
-  glUniformMatrix4fv(app->getShader()->getUniformLocation("projection"), 1,
-                     GL_FALSE,
-                     glm::value_ptr(app->getCamera()->getProjectionMatrix()));
+  auto &cams = *app->getCameras();
+
+  glUniformMatrix4fv(
+      app->getShader()->getUniformLocation("projection"), 1, GL_FALSE,
+      glm::value_ptr(cams[app->getCameraIndex()].getProjectionMatrix()));
 
   glViewport(0, 0, width, height);
 }

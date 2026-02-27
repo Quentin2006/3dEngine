@@ -51,10 +51,10 @@ struct Sweep {
   int circleSegments; // # of vertices per cross-section circle
   glm::vec3 color;
 };
-//
-// struct Camera {
-//   float FOV;
-// };
+
+struct CameraConf {
+  float FOV;
+};
 
 struct MeshPath {
   std::string path;

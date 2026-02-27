@@ -47,7 +47,7 @@ std::vector<ObjectConfig> genRailsForCoaster(const std::vector<glm::vec3> &pts,
     const glm::vec3 topPos = {pos.x, pos.y, pos.z};
 
     coasterRails.push_back({
-        .transform = {floorPos, {0, 0, 0}, {1, 1, 1}},
+        .transform = {floorPos, {0, 0, 0}, {1, 1, 1}, -1},
         .sweep = {{floorPos, topPos}, 0.25, 10, 20, {0.7f, 0.7f, 0.7f}},
     });
   }
