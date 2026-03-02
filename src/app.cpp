@@ -1,4 +1,5 @@
 #include "app.h"
+#include "callbacks.h"
 #include "ecs/components.h"
 #include "ecs/registry.h"
 #include "ecs/systems.h"
@@ -23,17 +24,152 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
+void key_callback(GLFWwindow *window, int key, int /*scancode*/, int action,
+                  int /*mods*/) {
+  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
+  if (!app)
+    return;
+
+  bool pressed = (action == GLFW_PRESS);
+  bool released = (action == GLFW_RELEASE);
+
+  if (!pressed && !released)
+    return;
+
+  InputState *input = app->getInputState();
+  switch (key) {
+  case Controls::MOVE_FORWARD:
+    input->w = pressed;
+    return;
+  case Controls::MOVE_BACKWARD:
+    input->s = pressed;
+    return;
+  case Controls::MOVE_LEFT:
+    input->a = pressed;
+    return;
+  case Controls::MOVE_RIGHT:
+    input->d = pressed;
+    return;
+  case Controls::MOVE_DOWN:
+    input->q = pressed;
+    return;
+  case Controls::MOVE_UP:
+    input->e = pressed;
+    return;
+  case Controls::ROTATE_PITCH_UP:
+    input->up = pressed;
+    return;
+  case Controls::ROTATE_PITCH_DOWN:
+    input->down = pressed;
+    return;
+  case Controls::ROTATE_YAW_LEFT:
+    input->left = pressed;
+    return;
+  case Controls::ROTATE_YAW_RIGHT:
+    input->right = pressed;
+    return;
+  case Controls::NEXT_CAMERA:
+    input->c = pressed;
+    return;
+  default:
+    return;
+  }
+}
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
+  if (!app)
+    return;
+
+  app->getWindow()->setWidth(width);
+  app->getWindow()->setHeight(height);
+
+  for (auto &camera : *app->getCameras()) {
+    camera.updateAspect(width, height);
+  }
+
+  auto &cams = *app->getCameras();
+  auto *shader = app->getShader();
+  glUniformMatrix4fv(
+      shader->getUniformLocation("projection"), 1, GL_FALSE,
+      glm::value_ptr(cams[app->getCameraIndex()].getProjectionMatrix()));
+
+  glViewport(0, 0, width, height);
+}
+
 void fps(float deltaTime);
 
+ObjectBuilder &ObjectBuilder::withMesh(const std::string &path,
+                                       const std::string &name) {
+  config.mesh = {path, name};
+  return *this;
+}
+
+ObjectBuilder &ObjectBuilder::withTransform(const glm::vec3 &pos,
+                                            const glm::vec3 &rot,
+                                            const glm::vec3 &scale,
+                                            int parentId) {
+  config.transform = {pos, rot, scale, parentId};
+  return *this;
+}
+
+ObjectBuilder &ObjectBuilder::withSineAnimator(const glm::vec3 &axis, float amp,
+                                               float freq, float phase) {
+  config.sineAnim = {axis, amp, freq, phase};
+  return *this;
+}
+
+ObjectBuilder &ObjectBuilder::withRotationAnimator(const glm::vec3 &axis,
+                                                   float rpm) {
+  config.rotationAnim = {axis, rpm};
+  return *this;
+}
+
+ObjectBuilder &
+ObjectBuilder::withParametricAnimator(const std::vector<glm::vec3> &points,
+                                      float speed, float phase) {
+  config.parAnim = {points, speed, phase};
+  return *this;
+}
+
+ObjectBuilder &ObjectBuilder::withCamera(float fov) {
+  config.camera = {fov};
+  return *this;
+}
+
+ObjectBuilder &ObjectBuilder::withLight(const glm::vec3 &color,
+                                        float intensity) {
+  config.light = {color, intensity};
+  return *this;
+}
+
+ObjectBuilder &ObjectBuilder::withSweep(const Sweep &sweep) {
+  config.sweep = sweep;
+  return *this;
+}
+
+ObjectConfig ObjectBuilder::build() { return config; }
+
+ObjectBuilder createObject() { return ObjectBuilder{}; }
+
 App::App(int width, int height, const std::string &title)
-    : window(width, height, title), shader(),
-      camera(45.f, width, height, 0.1f, 100000.f), frameCounter(0) {
+    : window(width, height, title), shader(), frameCounter(0) {
+
   if (!gladLoadGLLoader((void *(*)(const char *))glfwGetProcAddress)) {
     std::cerr << "Failed to initialize GLAD" << std::endl;
     exit(-1);
   }
   // load the shaders
-  shader.loadShaders();
+  ShaderResult shaderLoadResult = shader.loadShaders();
+  if (shaderLoadResult != ShaderResult::Success) {
+    std::cerr << "Failed to load shaders: "
+              << static_cast<int>(shaderLoadResult) << std::endl;
+    exit(1);
+  }
+
+  // init camera
+  cameras.push_back(Camera(45.f, width, height));
+  cameraIndex = 0;
 
   // CONFIG
   glViewport(0, 0, window.getWidth(), window.getHeight());
@@ -65,6 +201,11 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
         cfg.sweep.radius, cfg.sweep.color);
   }
   registry.getTransform(obj) = cfg.transform;
+
+  if (cfg.camera.FOV > 0.f) {
+    registry.getCamera(obj) =
+        Camera(cfg.camera.FOV, window.getWidth(), window.getWidth());
+  }
 
   if (cfg.light.intensity != 0.f) {
     registry.getLight(obj) = cfg.light;
@@ -102,29 +243,36 @@ void App::run() {
   // NOTE: entities will get id's starting at 0
   std::vector<ObjectConfig> objectConfigs = {
       // === ROLLER COASTER TRACK ===
-      {.sweep = {coasterPoints, 0.4f, 3000, 24, {1, 0, 1}}},
+      createObject()
+          .withSweep({coasterPoints,
+                      COASTER_PATH_SEGMENTS,
+                      3000,
+                      COASTER_CIRCLE_SEGMENTS,
+                      {1, 0, 1}})
+          .build(),
 
-      {.mesh = {"../../Sync/3dEngine-assets/Car/", "Car.obj"},
-       .transform = {{0, 20, 0}, {0, 0, 0}, {.2, .2, .2}},
-       .parAnim = {coasterPoints, .5f, 0.f}},
-
+      createObject()
+          .withMesh("../../Sync/3dEngine-assets/Car/", "Car.obj")
+          .withTransform(
+              {0, 20, 0}, {0, 0, 0},
+              {COASTER_CAR_SCALE, COASTER_CAR_SCALE, COASTER_CAR_SCALE}, -1)
+          .withParametricAnimator(coasterPoints, COASTER_CAR_SPEED, 0.f)
+          .withCamera(45.f)
+          .build(),
   };
 
-  // add lgihts to objectConfigs
-  for (const auto &cfg : genLightsForCoaster(coasterPoints, 10)) {
+  // add lights to objectConfigs
+  for (const auto &cfg : genLightsForCoaster(coasterPoints, LIGHT_COUNT)) {
     objectConfigs.push_back(cfg);
   }
 
-  // for (int i = 0; i < 1; i++) {
-  //
-  //   auto tree = genTree(glm::vec3{i * 5, i, 0}, 1.0f + i, 0.25f, 4, 7);
-  //
-  //   for (const auto &cfg : tree) {
-  //     objectConfigs.push_back(cfg);
-  //   }
-  // }
+  for (const auto &cfg :
+       genTree(glm::vec3{0, 0, 0}, TREE_HEIGHT_SCALE, TREE_BASE_WIDTH,
+               TREE_NUM_LEVELS, TREE_NUM_PER_LEVEL)) {
+    objectConfigs.push_back(cfg);
+  }
 
-  for (const auto &cfg : genRailsForCoaster(coasterPoints, 10)) {
+  for (const auto &cfg : genRailsForCoaster(coasterPoints, RAIL_COUNT)) {
     objectConfigs.push_back(cfg);
   }
 
@@ -143,7 +291,7 @@ void App::run() {
         std::chrono::duration<float>(currentTime - prevTime).count();
     prevTime = currentTime;
     totalTime += deltaTime;
-    fps(deltaTime);
+    // fps(deltaTime);
 
     // clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -176,8 +324,8 @@ void App::run() {
     lightUniformBuffer.uploadData(&lightBlock, sizeof(LightBlock));
 
     CameraBlock cameraBlock{
-        camera.getViewMatrix(),
-        camera.getProjectionMatrix(),
+        cameras[cameraIndex].getViewMatrix(),
+        cameras[cameraIndex].getProjectionMatrix(),
     };
 
     // ensure its bounded
@@ -187,7 +335,7 @@ void App::run() {
 
     // Set camera position for specular lighting
     glUniform3fv(shader.getUniformLocation("cameraPos"), 1,
-                 glm::value_ptr(camera.getPosition()));
+                 glm::value_ptr(cameras[cameraIndex].getPosition()));
 
     shader.use();
     renderAll(registry, shader.getUniformLocation("model"),
@@ -205,23 +353,27 @@ void App::moveCamera(float deltaTime) {
   float rotAmount = ROTATION_SPEED * deltaTime;
 
   if (input.w)
-    camera.moveForward(moveAmount);
+    cameras[cameraIndex].moveForward(moveAmount);
   if (input.s)
-    camera.moveForward(-moveAmount);
+    cameras[cameraIndex].moveForward(-moveAmount);
   if (input.a)
-    camera.moveRight(-moveAmount);
+    cameras[cameraIndex].moveRight(-moveAmount);
   if (input.d)
-    camera.moveRight(moveAmount);
+    cameras[cameraIndex].moveRight(moveAmount);
   if (input.q)
-    camera.moveUp(moveAmount);
+    cameras[cameraIndex].moveUp(moveAmount);
   if (input.e)
-    camera.moveUp(-moveAmount);
+    cameras[cameraIndex].moveUp(-moveAmount);
   if (input.up)
-    camera.rotatePitch(rotAmount);
+    cameras[cameraIndex].rotatePitch(rotAmount);
   if (input.down)
-    camera.rotatePitch(-rotAmount);
+    cameras[cameraIndex].rotatePitch(-rotAmount);
   if (input.left)
-    camera.rotateYaw(-rotAmount);
+    cameras[cameraIndex].rotateYaw(-rotAmount);
   if (input.right)
-    camera.rotateYaw(rotAmount);
+    cameras[cameraIndex].rotateYaw(rotAmount);
+  if (input.c) {
+    cameraIndex = (cameraIndex + 1) % cameras.size();
+    std::cerr << cameraIndex << std::endl;
+  }
 }

@@ -8,16 +8,30 @@
 Shader::Shader() {}
 Shader::~Shader() { glDeleteProgram(currentShaderProgram); }
 
-void Shader::loadShaders() {
+ShaderResult Shader::loadShaders() {
   vertexSource = readFile("src/shaders/shader.vert");
+  if (vertexSource.empty()) {
+    std::cerr << "Failed to read vertex shader file: src/shaders/shader.vert" << std::endl;
+    return ShaderResult::FileNotFound;
+  }
+  
   fragmentSource = readFile("src/shaders/shader.frag");
+  if (fragmentSource.empty()) {
+    std::cerr << "Failed to read fragment shader file: src/shaders/shader.frag" << std::endl;
+    return ShaderResult::FileNotFound;
+  }
 
   glDeleteProgram(currentShaderProgram);
 
   currentShaderProgram =
       createShaderProgram(vertexSource.c_str(), fragmentSource.c_str());
 
+  if (currentShaderProgram == 0) {
+    return ShaderResult::LinkingFailed;
+  }
+
   glUseProgram(currentShaderProgram);
+  return ShaderResult::Success;
 }
 
 std::string Shader::readFile(const char *path) {
@@ -30,8 +44,15 @@ std::string Shader::readFile(const char *path) {
 unsigned int Shader::createShaderProgram(const char *vertexSource,
                                          const char *fragmentSource) {
   unsigned int vertexShader = compileShader(GL_VERTEX_SHADER, vertexSource);
-  unsigned int fragmentShader =
-      compileShader(GL_FRAGMENT_SHADER, fragmentSource);
+  if (vertexShader == 0) {
+    return 0;
+  }
+  
+  unsigned int fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentSource);
+  if (fragmentShader == 0) {
+    glDeleteShader(vertexShader);
+    return 0;
+  }
 
   unsigned int shaderProgram = glCreateProgram();
   glAttachShader(shaderProgram, vertexShader);

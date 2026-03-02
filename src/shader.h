@@ -4,11 +4,18 @@
 #include <map>
 #include <string>
 
+enum class ShaderResult {
+  Success,
+  FileNotFound,
+  CompilationFailed,
+  LinkingFailed
+};
+
 class Shader {
 public:
   Shader();
   ~Shader();
-  void loadShaders();
+  ShaderResult loadShaders();
   void use() { glUseProgram(currentShaderProgram); }
   unsigned int getShaderProgram() { return currentShaderProgram; }
   int addUniform(const std::string &name);

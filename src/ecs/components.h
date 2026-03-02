@@ -15,7 +15,7 @@ struct Transform {
   glm::vec3 offset;
   glm::vec3 rotation; // degrees
   glm::vec3 scale;
-  int parrentId; // any neg # will be no parrent
+  int parentId; // any neg # will be no parent
   glm::mat4 matrix{1.f};
   glm::vec3 position{0.f, 0.f, 0.f};
 };
@@ -51,10 +51,10 @@ struct Sweep {
   int circleSegments; // # of vertices per cross-section circle
   glm::vec3 color;
 };
-//
-// struct Camera {
-//   float FOV;
-// };
+
+struct CameraConf {
+  float FOV;
+};
 
 struct MeshPath {
   std::string path;
