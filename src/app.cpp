@@ -4,6 +4,7 @@
 #include "ecs/registry.h"
 #include "ecs/systems.h"
 #include "gen.h"
+#include "objectBuilder.h"
 #include "resource_manager.h"
 #include "uniformBuffer.h"
 #include <GLFW/glfw3.h>
@@ -24,132 +25,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-void key_callback(GLFWwindow *window, int key, int /*scancode*/, int action,
-                  int /*mods*/) {
-  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
-  if (!app)
-    return;
-
-  bool pressed = (action == GLFW_PRESS);
-  bool released = (action == GLFW_RELEASE);
-
-  if (!pressed && !released)
-    return;
-
-  InputState *input = app->getInputState();
-  switch (key) {
-  case Controls::MOVE_FORWARD:
-    input->w = pressed;
-    return;
-  case Controls::MOVE_BACKWARD:
-    input->s = pressed;
-    return;
-  case Controls::MOVE_LEFT:
-    input->a = pressed;
-    return;
-  case Controls::MOVE_RIGHT:
-    input->d = pressed;
-    return;
-  case Controls::MOVE_DOWN:
-    input->q = pressed;
-    return;
-  case Controls::MOVE_UP:
-    input->e = pressed;
-    return;
-  case Controls::ROTATE_PITCH_UP:
-    input->up = pressed;
-    return;
-  case Controls::ROTATE_PITCH_DOWN:
-    input->down = pressed;
-    return;
-  case Controls::ROTATE_YAW_LEFT:
-    input->left = pressed;
-    return;
-  case Controls::ROTATE_YAW_RIGHT:
-    input->right = pressed;
-    return;
-  case Controls::NEXT_CAMERA:
-    input->c = pressed;
-    return;
-  default:
-    return;
-  }
-}
-
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
-  if (!app)
-    return;
-
-  app->getWindow()->setWidth(width);
-  app->getWindow()->setHeight(height);
-
-  for (auto &camera : *app->getCameras()) {
-    camera.updateAspect(width, height);
-  }
-
-  auto &cams = *app->getCameras();
-  auto *shader = app->getShader();
-  glUniformMatrix4fv(
-      shader->getUniformLocation("projection"), 1, GL_FALSE,
-      glm::value_ptr(cams[app->getCameraIndex()].getProjectionMatrix()));
-
-  glViewport(0, 0, width, height);
-}
-
-ObjectBuilder &ObjectBuilder::withMesh(const std::string &path,
-                                       const std::string &name) {
-  config.mesh = {path, name};
-  return *this;
-}
-
-ObjectBuilder &ObjectBuilder::withTransform(const glm::vec3 &pos,
-                                            const glm::vec3 &rot,
-                                            const glm::vec3 &scale,
-                                            int parentId) {
-  config.transform = {pos, rot, scale, parentId};
-  return *this;
-}
-
-ObjectBuilder &ObjectBuilder::withSineAnimator(const glm::vec3 &axis, float amp,
-                                               float freq, float phase) {
-  config.sineAnim = {axis, amp, freq, phase};
-  return *this;
-}
-
-ObjectBuilder &ObjectBuilder::withRotationAnimator(const glm::vec3 &axis,
-                                                   float rpm) {
-  config.rotationAnim = {axis, rpm};
-  return *this;
-}
-
-ObjectBuilder &
-ObjectBuilder::withParametricAnimator(const std::vector<glm::vec3> &points,
-                                      float speed, float phase) {
-  config.parAnim = {points, speed, phase};
-  return *this;
-}
-
-ObjectBuilder &ObjectBuilder::withCamera(float fov) {
-  config.camera = {fov};
-  return *this;
-}
-
-ObjectBuilder &ObjectBuilder::withLight(const glm::vec3 &color,
-                                        float intensity) {
-  config.light = {color, intensity};
-  return *this;
-}
-
-ObjectBuilder &ObjectBuilder::withSweep(const Sweep &sweep) {
-  config.sweep = sweep;
-  return *this;
-}
-
-ObjectConfig ObjectBuilder::build() { return config; }
-
-ObjectBuilder createObject() { return ObjectBuilder{}; }
-
 void fps(float deltaTime);
 
 App::App(int width, int height, const std::string &title)
@@ -159,7 +34,6 @@ App::App(int width, int height, const std::string &title)
     std::cerr << "Failed to initialize GLAD" << std::endl;
     exit(-1);
   }
-  // load the shaders
   ShaderResult shaderLoadResult = shader.loadShaders();
   if (shaderLoadResult != ShaderResult::Success) {
     std::cerr << "Failed to load shaders: "
@@ -167,21 +41,17 @@ App::App(int width, int height, const std::string &title)
     exit(1);
   }
 
-  // init camera
   cameras.push_back(Camera(45.f, width, height));
   cameraIndex = 0;
 
-  // CONFIG
   glViewport(0, 0, window.getWidth(), window.getHeight());
   glClearColor(0.2f, 0.2f, 0.5f, 1.f);
   glEnable(GL_DEPTH_TEST);
 
-  // Face culling - skip rendering inside faces
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   glFrontFace(GL_CCW);
 
-  // needed to get class instance in window callback
   glfwSetWindowUserPointer(window.getGLFWwindow(), this);
   glfwSetKeyCallback(window.getGLFWwindow(), key_callback);
   glfwSetFramebufferSizeCallback(window.getGLFWwindow(),
@@ -226,14 +96,12 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
 }
 
 void App::run() {
-  // get uniform location, now that the shader exists, we can find the ID
   shader.addUniform("model");
   shader.addUniform("diffuseTexture");
   shader.addUniform("specularTexture");
   shader.addUniform("shininess");
   shader.addUniform("cameraPos");
 
-  // bind uniforms to shader
   shader.bindUniformBlock("LightBlock", 0);
   shader.bindUniformBlock("CameraBlock", 1);
 
@@ -244,9 +112,7 @@ void App::run() {
       {30, 5, 0},    {20, 8, 15},  {0, 50, 20},  {-20, 8, 15}, {-30, 5, 0},
       {-20, 8, -15}, {0, 12, -20}, {20, 8, -15}, {30, 5, 0}};
 
-  // NOTE: entities will get id's starting at 0
   std::vector<ObjectConfig> objectConfigs = {
-      // === ROLLER COASTER TRACK ===
       createObject()
           .withSweep({coasterPoints,
                       COASTER_PATH_SEGMENTS,
@@ -265,7 +131,6 @@ void App::run() {
           .build(),
   };
 
-  // add lights to objectConfigs
   for (const auto &cfg : genLightsForCoaster(coasterPoints, LIGHT_COUNT)) {
     objectConfigs.push_back(cfg);
   }
@@ -280,7 +145,6 @@ void App::run() {
     objectConfigs.push_back(cfg);
   }
 
-  // LOAD MESHES
   std::cerr << "Loading meshes: " << objectConfigs.size() << std::endl;
   for (const auto &cfg : objectConfigs) {
     loadObjectFromConfig(cfg);
@@ -297,17 +161,13 @@ void App::run() {
     totalTime += deltaTime;
     fps(deltaTime);
 
-    // clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // update camera
     moveCamera(deltaTime);
 
-    // Update and render via ECS systems
     updateTransforms(registry);
     updateAnimations(registry, deltaTime);
 
-    // Collect all lights into uniform buffer
     LightBlock lightBlock{};
     lightBlock.count = 0;
     for (auto &id : registry.getLightEntityIds()) {
@@ -321,9 +181,7 @@ void App::run() {
       lightBlock.count++;
     }
 
-    // ensure its bounded
     lightUniformBuffer.bindToPoint(0);
-    // Upload light data to GPU
     lightUniformBuffer.uploadData(&lightBlock, sizeof(LightBlock));
 
     CameraBlock cameraBlock{
@@ -331,12 +189,9 @@ void App::run() {
         cameras[cameraIndex].getProjectionMatrix(),
     };
 
-    // ensure its bounded
     cameraUniformBuffer.bindToPoint(1);
-    // Upload light data to GPU
     cameraUniformBuffer.uploadData(&cameraBlock, sizeof(CameraBlock));
 
-    // Set camera position for specular lighting
     glUniform3fv(shader.getUniformLocation("cameraPos"), 1,
                  glm::value_ptr(cameras[cameraIndex].getPosition()));
 
