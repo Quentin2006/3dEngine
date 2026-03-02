@@ -160,10 +160,15 @@ void genTreeBranch(const glm::vec3 &startPos, const glm::vec3 &endPos,
 
 void fps(float deltaTime) {
   static float fpsTimer = 0;
+  static float totalTime = 0;
+  static int totalFrames = 0;
   fpsTimer += deltaTime;
+  totalTime += deltaTime;
+  ++totalFrames;
 
   if (fpsTimer >= 1) {
-    std::cerr << "\rfps: " << 1 / deltaTime << std::flush;
+    std::cerr << "\rfps: " << 1 / deltaTime
+              << " avg fps: " << totalFrames / totalTime << std::flush;
     fpsTimer = 0;
   }
 }
