@@ -77,6 +77,7 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   if (cfg.camera.FOV > 0.f) {
     registry.setCamera(
         obj, Camera(cfg.camera.FOV, window.getWidth(), cfg.camera.FOV));
+    cameras.push_back(registry.getCamera(obj).value());
   }
 
   if (cfg.light.intensity != 0.f) {
@@ -127,6 +128,12 @@ void App::run() {
               {0, 20, 0}, {0, 0, 0},
               {COASTER_CAR_SCALE, COASTER_CAR_SCALE, COASTER_CAR_SCALE}, -1)
           .withParametricAnimator(coasterPoints, COASTER_CAR_SPEED, 0.f)
+          .withCamera(45.f)
+          .build(),
+
+      createObject()
+          .withMesh("../../Sync/3dEngine-assets/test/", "Untitled.obj")
+          .withTransform({20, 0, 20}, {0, 0, 0}, {10, 10, 10}, -1)
           .withCamera(45.f)
           .build(),
   };

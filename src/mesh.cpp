@@ -37,11 +37,6 @@ Mesh::Mesh(unsigned int textureUniform, glm::vec3 color)
   glGenTextures(1, &imageTexture);
   glBindTexture(GL_TEXTURE_2D, imageTexture);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                whitePixel);
 
@@ -49,22 +44,12 @@ Mesh::Mesh(unsigned int textureUniform, glm::vec3 color)
   glGenTextures(1, &specularTexture);
   glBindTexture(GL_TEXTURE_2D, specularTexture);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                whitePixel);
 
   // Create default white diffuse texture (1x1 pixel)
   glGenTextures(1, &diffuseTexture);
   glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                whitePixel);
@@ -156,44 +141,45 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
   auto &shapes = reader.GetShapes();
   auto &materials = reader.GetMaterials();
 
-  // Track if we loaded a texture for this mesh
-  bool textureLoaded = false;
+  if (!materials.empty()) {
+    const auto &mat = materials[0];
+    if (!mat.diffuse_texname.empty()) {
+      setTexture(filePath + mat.diffuse_texname, TextureType::Diffuse);
+    }
+    if (!mat.specular_texname.empty()) {
+      setTexture(filePath + mat.specular_texname, TextureType::Specular);
+    }
+    if (mat.shininess > 1.0f) {
+      shininess = mat.shininess;
+    }
+  }
+
+  vertices.reserve(attrib.vertices.size() / 3);
 
   for (size_t s = 0; s < shapes.size(); s++) {
     size_t index_offset = 0;
     for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+      size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
-      int material_id = shapes[s].mesh.material_ids[f];
+      glm::vec3 faceNormal(0, 0, 1);
+      if (fv >= 3 && shapes[s].mesh.indices[index_offset].normal_index < 0) {
+        tinyobj::index_t idx0 = shapes[s].mesh.indices[index_offset + 0];
+        tinyobj::index_t idx1 = shapes[s].mesh.indices[index_offset + 1];
+        tinyobj::index_t idx2 = shapes[s].mesh.indices[index_offset + 2];
 
-      // Only load texture if material has diffuse texture and we haven't
-      // loaded it yet
-      if (material_id >= 0 && !textureLoaded) {
-        const std::string &difTexName = materials[material_id].diffuse_texname;
-        const std::string &specTexName =
-            materials[material_id].specular_texname;
+        glm::vec3 v0(attrib.vertices[3 * idx0.vertex_index + 0],
+                     attrib.vertices[3 * idx0.vertex_index + 1],
+                     attrib.vertices[3 * idx0.vertex_index + 2]);
+        glm::vec3 v1(attrib.vertices[3 * idx1.vertex_index + 0],
+                     attrib.vertices[3 * idx1.vertex_index + 1],
+                     attrib.vertices[3 * idx1.vertex_index + 2]);
+        glm::vec3 v2(attrib.vertices[3 * idx2.vertex_index + 0],
+                     attrib.vertices[3 * idx2.vertex_index + 1],
+                     attrib.vertices[3 * idx2.vertex_index + 2]);
 
-        if (!difTexName.empty()) {
-          std::string texturePath = filePath + difTexName;
-          std::cerr << "Loading texture: " << texturePath << std::endl;
-          setTexture(texturePath, TextureType::Diffuse);
-          textureLoaded = true;
-        }
-
-        if (!specTexName.empty()) {
-          std::string texturePath = filePath + specTexName;
-          std::cerr << "Loading specular texture: " << texturePath << std::endl;
-          setTexture(texturePath, TextureType::Specular);
-        }
-
-        // Load shininess from material
-        if (material_id >= 0) {
-          shininess = materials[material_id].shininess;
-          if (shininess < 1.0f)
-            shininess = 32.0f; // default
-        }
+        faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
       }
 
-      size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
       for (size_t v = 0; v < fv; v++) {
         Vertex vertex;
         tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
@@ -208,27 +194,7 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
           tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
           vertex.normal = glm::vec3(nx, ny, nz);
         } else {
-          if (fv >= 3) {
-            tinyobj::index_t idx0 = shapes[s].mesh.indices[index_offset + 0];
-            tinyobj::index_t idx1 = shapes[s].mesh.indices[index_offset + 1];
-            tinyobj::index_t idx2 = shapes[s].mesh.indices[index_offset + 2];
-
-            glm::vec3 v0(attrib.vertices[3 * idx0.vertex_index + 0],
-                         attrib.vertices[3 * idx0.vertex_index + 1],
-                         attrib.vertices[3 * idx0.vertex_index + 2]);
-            glm::vec3 v1(attrib.vertices[3 * idx1.vertex_index + 0],
-                         attrib.vertices[3 * idx1.vertex_index + 1],
-                         attrib.vertices[3 * idx1.vertex_index + 2]);
-            glm::vec3 v2(attrib.vertices[3 * idx2.vertex_index + 0],
-                         attrib.vertices[3 * idx2.vertex_index + 1],
-                         attrib.vertices[3 * idx2.vertex_index + 2]);
-
-            glm::vec3 edge1 = v1 - v0;
-            glm::vec3 edge2 = v2 - v0;
-            vertex.normal = glm::normalize(glm::cross(edge1, edge2));
-          } else {
-            vertex.normal = glm::vec3(0, 0, 1);
-          }
+          vertex.normal = faceNormal;
         }
 
         if (idx.texcoord_index >= 0) {
