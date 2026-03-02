@@ -134,7 +134,6 @@ void App::run() {
       createObject()
           .withMesh("../../Sync/3dEngine-assets/test/", "Untitled.obj")
           .withTransform({20, 0, 20}, {0, 0, 0}, {10, 10, 10}, -1)
-          .withCamera(45.f)
           .build(),
   };
 
@@ -237,8 +236,10 @@ void App::moveCamera(float deltaTime) {
     cameras[cameraIndex].rotateYaw(-rotAmount);
   if (input.right)
     cameras[cameraIndex].rotateYaw(rotAmount);
-  if (input.c) {
+  if (input.c && !input.c_pressed) {
     cameraIndex = (cameraIndex + 1) % cameras.size();
-    std::cerr << cameraIndex << std::endl;
+    input.c_pressed = true;
+  } else if (!input.c) {
+    input.c_pressed = false;
   }
 }

@@ -34,6 +34,7 @@ struct InputState {
   bool q = false, e = false;
   bool up = false, down = false, left = false, right = false;
   bool c = false;
+  bool c_pressed = false;
 };
 
 class App {
