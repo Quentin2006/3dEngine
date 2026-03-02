@@ -1,5 +1,6 @@
 #include "app.h"
 #include "callbacks.h"
+#include "camera.h"
 #include "ecs/components.h"
 #include "ecs/registry.h"
 #include "ecs/systems.h"
@@ -18,6 +19,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <memory>
 #include <ostream>
 #include <vector>
 
@@ -41,7 +43,7 @@ App::App(int width, int height, const std::string &title)
     exit(1);
   }
 
-  cameras.push_back(Camera(45.f, width, height));
+  cameras.push_back(std::shared_ptr<Camera>(new Camera(45.f, width, height)));
   cameraIndex = 0;
 
   glViewport(0, 0, window.getWidth(), window.getHeight());
@@ -73,12 +75,6 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   }
 
   registry.setTransform(obj, cfg.transform);
-
-  if (cfg.camera.FOV > 0.f) {
-    registry.setCamera(
-        obj, Camera(cfg.camera.FOV, window.getWidth(), cfg.camera.FOV));
-    cameras.push_back(registry.getCamera(obj).value());
-  }
 
   if (cfg.light.intensity != 0.f) {
     registry.setLight(obj, std::optional<Light>(cfg.light));
@@ -113,6 +109,31 @@ void App::run() {
       {30, 5, 0},    {20, 8, 15},  {0, 50, 20},  {-20, 8, 15}, {-30, 5, 0},
       {-20, 8, -15}, {0, 12, -20}, {20, 8, -15}, {30, 5, 0}};
 
+  // ========= NOTE: Setting up car =========
+  int carId = registry.createEntity();
+  registry.setMesh(carId, std::optional<MeshComp>({resourceManager.loadMesh(
+
+                              "../../Sync/3dEngine-assets/Car/", "Car.obj")}));
+  registry.setTransform(
+      carId,
+      {glm::vec3{0, 20, 0}, glm::vec3{0, 0, 0},
+       glm::vec3{COASTER_CAR_SCALE, COASTER_CAR_SCALE, COASTER_CAR_SCALE}, -1});
+  registry.setParametricAnimator(carId,
+                                 std::optional<ParametricAnimator>(
+                                     {coasterPoints, COASTER_CAR_SPEED, 0.f}));
+
+  // add cmaera to entity
+  int cameraId = registry.createEntity();
+  registry.setTransform(cameraId, {glm::vec3{0, 10, 0}, glm::vec3{0, 0, 0},
+                                   glm::vec3{1, 1, 1}, carId});
+
+  std::shared_ptr<Camera> camPtr(
+      new Camera(45.f, window.getWidth(), window.getHeight()));
+
+  cameras.push_back(camPtr);
+  registry.setCamera(cameraId, camPtr);
+  // ========= NOTE: End of setting up car =========
+
   std::vector<ObjectConfig> objectConfigs = {
       createObject()
           .withSweep({coasterPoints,
@@ -122,19 +143,6 @@ void App::run() {
                       {1, 0, 1}})
           .build(),
 
-      createObject()
-          .withMesh("../../Sync/3dEngine-assets/Car/", "Car.obj")
-          .withTransform(
-              {0, 20, 0}, {0, 0, 0},
-              {COASTER_CAR_SCALE, COASTER_CAR_SCALE, COASTER_CAR_SCALE}, -1)
-          .withParametricAnimator(coasterPoints, COASTER_CAR_SPEED, 0.f)
-          .withCamera(45.f)
-          .build(),
-
-      createObject()
-          .withMesh("../../Sync/3dEngine-assets/test/", "Untitled.obj")
-          .withTransform({20, 0, 20}, {0, 0, 0}, {10, 10, 10}, -1)
-          .build(),
   };
 
   for (const auto &cfg : genLightsForCoaster(coasterPoints, LIGHT_COUNT)) {
@@ -160,12 +168,13 @@ void App::run() {
   float totalTime = 0;
 
   while (!window.shouldClose()) {
+
     auto currentTime = std::chrono::steady_clock::now();
     auto deltaTime =
         std::chrono::duration<float>(currentTime - prevTime).count();
     prevTime = currentTime;
     totalTime += deltaTime;
-    fps(deltaTime);
+    // fps(deltaTime);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -173,6 +182,7 @@ void App::run() {
 
     updateTransforms(registry);
     updateAnimations(registry, deltaTime);
+    updateCamera(registry);
 
     LightBlock lightBlock{};
     lightBlock.count = 0;
@@ -191,15 +201,15 @@ void App::run() {
     lightUniformBuffer.uploadData(&lightBlock, sizeof(LightBlock));
 
     CameraBlock cameraBlock{
-        cameras[cameraIndex].getViewMatrix(),
-        cameras[cameraIndex].getProjectionMatrix(),
+        cameras[cameraIndex]->getViewMatrix(),
+        cameras[cameraIndex]->getProjectionMatrix(),
     };
 
     cameraUniformBuffer.bindToPoint(1);
     cameraUniformBuffer.uploadData(&cameraBlock, sizeof(CameraBlock));
 
     glUniform3fv(shader.getUniformLocation("cameraPos"), 1,
-                 glm::value_ptr(cameras[cameraIndex].getPosition()));
+                 glm::value_ptr(cameras[cameraIndex]->getPosition()));
 
     shader.use();
     renderAll(registry, shader.getUniformLocation("model"),
@@ -217,26 +227,27 @@ void App::moveCamera(float deltaTime) {
   float rotAmount = ROTATION_SPEED * deltaTime;
 
   if (input.w)
-    cameras[cameraIndex].moveForward(moveAmount);
+    cameras[cameraIndex]->moveForward(moveAmount);
   if (input.s)
-    cameras[cameraIndex].moveForward(-moveAmount);
+    cameras[cameraIndex]->moveForward(-moveAmount);
   if (input.a)
-    cameras[cameraIndex].moveRight(-moveAmount);
+    cameras[cameraIndex]->moveRight(-moveAmount);
   if (input.d)
-    cameras[cameraIndex].moveRight(moveAmount);
+    cameras[cameraIndex]->moveRight(moveAmount);
   if (input.q)
-    cameras[cameraIndex].moveUp(moveAmount);
+    cameras[cameraIndex]->moveUp(moveAmount);
   if (input.e)
-    cameras[cameraIndex].moveUp(-moveAmount);
+    cameras[cameraIndex]->moveUp(-moveAmount);
   if (input.up)
-    cameras[cameraIndex].rotatePitch(rotAmount);
+    cameras[cameraIndex]->rotatePitch(rotAmount);
   if (input.down)
-    cameras[cameraIndex].rotatePitch(-rotAmount);
+    cameras[cameraIndex]->rotatePitch(-rotAmount);
   if (input.left)
-    cameras[cameraIndex].rotateYaw(-rotAmount);
+    cameras[cameraIndex]->rotateYaw(-rotAmount);
   if (input.right)
-    cameras[cameraIndex].rotateYaw(rotAmount);
+    cameras[cameraIndex]->rotateYaw(rotAmount);
   if (input.c && !input.c_pressed) {
+    std::cerr << "Camera index: " << cameraIndex << std::endl;
     cameraIndex = (cameraIndex + 1) % cameras.size();
     input.c_pressed = true;
   } else if (!input.c) {

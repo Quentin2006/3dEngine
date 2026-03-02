@@ -3,6 +3,7 @@
 #include "components.h"
 #include <algorithm>
 #include <complex>
+#include <memory>
 #include <unordered_set>
 #include <vector>
 
@@ -56,9 +57,10 @@ public:
     lights[entity] = l;
     updateEntitySet(entity, lightEntityIds, l.has_value());
   }
-  void setCamera(int entity, const std::optional<Camera> &c) {
+  void setCamera(int entity, const std::shared_ptr<Camera> &c) {
     cameras[entity] = c;
-    updateEntitySet(entity, cameraEntityIds, c.has_value());
+
+    updateEntitySet(entity, cameraEntityIds, c != nullptr);
   }
 
   Transform &getTransform(int entity) { return transforms[entity]; }
@@ -80,7 +82,7 @@ public:
   const std::optional<Light> &getLight(int entity) const {
     return lights[entity];
   }
-  const std::optional<Camera> &getCamera(int entity) const {
+  const std::shared_ptr<Camera> &getCamera(int entity) const {
     return cameras[entity];
   }
 
@@ -125,7 +127,7 @@ private:
   std::vector<std::optional<ParametricAnimator>> parametricAnimators;
   std::unordered_set<size_t> parametricAnimatorEntityIds;
 
-  std::vector<std::optional<Camera>> cameras;
+  std::vector<std::shared_ptr<Camera>> cameras;
   std::unordered_set<size_t> cameraEntityIds;
 
   /**

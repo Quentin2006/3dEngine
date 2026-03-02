@@ -24,6 +24,8 @@ public:
                                   (float)width / (float)height, zNear, zFar);
   }
 
+  void setPos(const glm::vec3 &pos) { position = pos; };
+
   void move(const glm::vec3 &deltaPos) { position += deltaPos; }
   void moveForward(float distance);
   void moveRight(float distance);

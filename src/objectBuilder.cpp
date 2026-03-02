@@ -1,7 +1,7 @@
 #include "objectBuilder.h"
 
 ObjectBuilder &ObjectBuilder::withMesh(const std::string &path,
-                                        const std::string &name) {
+                                       const std::string &name) {
   config.mesh = {path, name};
   return *this;
 }
@@ -33,13 +33,8 @@ ObjectBuilder::withParametricAnimator(const std::vector<glm::vec3> &points,
   return *this;
 }
 
-ObjectBuilder &ObjectBuilder::withCamera(float fov) {
-  config.camera = {fov};
-  return *this;
-}
-
 ObjectBuilder &ObjectBuilder::withLight(const glm::vec3 &color,
-                                       float intensity) {
+                                        float intensity) {
   config.light = {color, intensity};
   return *this;
 }

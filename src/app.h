@@ -45,7 +45,7 @@ public:
   void moveCamera(float deltaTime);
 
   Window *getWindow() { return &window; };
-  std::vector<Camera> *getCameras() { return &cameras; };
+  std::vector<std::shared_ptr<Camera>> *getCameras() { return &cameras; };
   InputState *getInputState() { return &input; };
   Shader *getShader() { return &shader; };
 
@@ -58,7 +58,7 @@ private:
 
   Window window;
   Shader shader;
-  std::vector<Camera> cameras;
+  std::vector<std::shared_ptr<Camera>> cameras;
   uint32_t cameraIndex;
   InputState input;
   unsigned int frameCounter;

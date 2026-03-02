@@ -27,6 +27,16 @@ inline void updateTransforms(Registry &reg) {
   }
 }
 
+inline void updateCamera(Registry &reg) {
+  for (const auto &id : reg.getCameraEntityIds()) {
+    // get the cams transform
+    auto cam = reg.getCamera(id);
+    auto t = reg.getTransform(id);
+
+    cam->setPos(glm::vec3(t.matrix[3]) + t.offset);
+  }
+}
+
 inline void updateAnimations(Registry &reg, float deltaTime) {
   static float totalTime = 0;
   totalTime += deltaTime;

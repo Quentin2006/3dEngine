@@ -52,10 +52,6 @@ struct Sweep {
   glm::vec3 color;
 };
 
-struct CameraConf {
-  float FOV;
-};
-
 struct MeshPath {
   std::string path;
   std::string name;

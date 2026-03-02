@@ -64,14 +64,14 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
   app->getWindow()->setHeight(height);
 
   for (auto &camera : *app->getCameras()) {
-    camera.updateAspect(width, height);
+    camera->updateAspect(width, height);
   }
 
   auto &cams = *app->getCameras();
   auto *shader = app->getShader();
   glUniformMatrix4fv(
       shader->getUniformLocation("projection"), 1, GL_FALSE,
-      glm::value_ptr(cams[app->getCameraIndex()].getProjectionMatrix()));
+      glm::value_ptr(cams[app->getCameraIndex()]->getProjectionMatrix()));
 
   glViewport(0, 0, width, height);
 }
