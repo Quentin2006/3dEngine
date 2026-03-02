@@ -6,11 +6,6 @@
 #include <string>
 #include <vector>
 
-struct subMesh {
-  std::vector<Vertex> vertices;
-  unsigned int texture;
-};
-
 enum TextureType { Diffuse, Specular, Image };
 
 class Mesh {

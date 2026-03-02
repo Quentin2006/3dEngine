@@ -174,7 +174,7 @@ void App::run() {
         std::chrono::duration<float>(currentTime - prevTime).count();
     prevTime = currentTime;
     totalTime += deltaTime;
-    // fps(deltaTime);
+    fps(deltaTime);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -247,7 +247,6 @@ void App::moveCamera(float deltaTime) {
   if (input.right)
     cameras[cameraIndex]->rotateYaw(rotAmount);
   if (input.c && !input.c_pressed) {
-    std::cerr << "Camera index: " << cameraIndex << std::endl;
     cameraIndex = (cameraIndex + 1) % cameras.size();
     input.c_pressed = true;
   } else if (!input.c) {
