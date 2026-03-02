@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra
+CXXFLAGS = -std=c++17 -Wall -Wextra -g
 LDFLAGS = -lglfw -lGL -ldl -lpthread
 
 SRCDIR = src
@@ -40,9 +40,6 @@ $(BINDIR):
 
 run: $(TARGET)
 	./$(TARGET)
-
-debug: $(OBJECTS) | $(BINDIR) $(DIRS)
-	$(CXX) $(OBJECTS) -o $(TARGET) $(LDFLAGS) -g
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)

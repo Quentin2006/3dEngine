@@ -24,45 +24,72 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
-void key_callback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/) {
-  App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-  if (!app) return;
+void key_callback(GLFWwindow *window, int key, int /*scancode*/, int action,
+                  int /*mods*/) {
+  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
+  if (!app)
+    return;
 
   bool pressed = (action == GLFW_PRESS);
   bool released = (action == GLFW_RELEASE);
 
-  if (!pressed && !released) return;
+  if (!pressed && !released)
+    return;
 
-  InputState* input = app->getInputState();
+  InputState *input = app->getInputState();
   switch (key) {
-    case Controls::MOVE_FORWARD: input->w = pressed; return;
-    case Controls::MOVE_BACKWARD: input->s = pressed; return;
-    case Controls::MOVE_LEFT: input->a = pressed; return;
-    case Controls::MOVE_RIGHT: input->d = pressed; return;
-    case Controls::MOVE_DOWN: input->q = pressed; return;
-    case Controls::MOVE_UP: input->e = pressed; return;
-    case Controls::ROTATE_PITCH_UP: input->up = pressed; return;
-    case Controls::ROTATE_PITCH_DOWN: input->down = pressed; return;
-    case Controls::ROTATE_YAW_LEFT: input->left = pressed; return;
-    case Controls::ROTATE_YAW_RIGHT: input->right = pressed; return;
-    case Controls::NEXT_CAMERA: input->c = pressed; return;
-    default: return;
+  case Controls::MOVE_FORWARD:
+    input->w = pressed;
+    return;
+  case Controls::MOVE_BACKWARD:
+    input->s = pressed;
+    return;
+  case Controls::MOVE_LEFT:
+    input->a = pressed;
+    return;
+  case Controls::MOVE_RIGHT:
+    input->d = pressed;
+    return;
+  case Controls::MOVE_DOWN:
+    input->q = pressed;
+    return;
+  case Controls::MOVE_UP:
+    input->e = pressed;
+    return;
+  case Controls::ROTATE_PITCH_UP:
+    input->up = pressed;
+    return;
+  case Controls::ROTATE_PITCH_DOWN:
+    input->down = pressed;
+    return;
+  case Controls::ROTATE_YAW_LEFT:
+    input->left = pressed;
+    return;
+  case Controls::ROTATE_YAW_RIGHT:
+    input->right = pressed;
+    return;
+  case Controls::NEXT_CAMERA:
+    input->c = pressed;
+    return;
+  default:
+    return;
   }
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-  App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-  if (!app) return;
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
+  if (!app)
+    return;
 
   app->getWindow()->setWidth(width);
   app->getWindow()->setHeight(height);
 
-  for (auto& camera : *app->getCameras()) {
+  for (auto &camera : *app->getCameras()) {
     camera.updateAspect(width, height);
   }
 
-  auto& cams = *app->getCameras();
-  auto* shader = app->getShader();
+  auto &cams = *app->getCameras();
+  auto *shader = app->getShader();
   glUniformMatrix4fv(
       shader->getUniformLocation("projection"), 1, GL_FALSE,
       glm::value_ptr(cams[app->getCameraIndex()].getProjectionMatrix()));
@@ -70,53 +97,58 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-ObjectBuilder& ObjectBuilder::withMesh(const std::string& path, const std::string& name) {
+ObjectBuilder &ObjectBuilder::withMesh(const std::string &path,
+                                       const std::string &name) {
   config.mesh = {path, name};
   return *this;
 }
 
-ObjectBuilder& ObjectBuilder::withTransform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale, int parentId) {
+ObjectBuilder &ObjectBuilder::withTransform(const glm::vec3 &pos,
+                                            const glm::vec3 &rot,
+                                            const glm::vec3 &scale,
+                                            int parentId) {
   config.transform = {pos, rot, scale, parentId};
   return *this;
 }
 
-ObjectBuilder& ObjectBuilder::withSineAnimator(const glm::vec3& axis, float amp, float freq, float phase) {
+ObjectBuilder &ObjectBuilder::withSineAnimator(const glm::vec3 &axis, float amp,
+                                               float freq, float phase) {
   config.sineAnim = {axis, amp, freq, phase};
   return *this;
 }
 
-ObjectBuilder& ObjectBuilder::withRotationAnimator(const glm::vec3& axis, float rpm) {
+ObjectBuilder &ObjectBuilder::withRotationAnimator(const glm::vec3 &axis,
+                                                   float rpm) {
   config.rotationAnim = {axis, rpm};
   return *this;
 }
 
-ObjectBuilder& ObjectBuilder::withParametricAnimator(const std::vector<glm::vec3>& points, float speed, float phase) {
+ObjectBuilder &
+ObjectBuilder::withParametricAnimator(const std::vector<glm::vec3> &points,
+                                      float speed, float phase) {
   config.parAnim = {points, speed, phase};
   return *this;
 }
 
-ObjectBuilder& ObjectBuilder::withCamera(float fov) {
+ObjectBuilder &ObjectBuilder::withCamera(float fov) {
   config.camera = {fov};
   return *this;
 }
 
-ObjectBuilder& ObjectBuilder::withLight(const glm::vec3& color, float intensity) {
+ObjectBuilder &ObjectBuilder::withLight(const glm::vec3 &color,
+                                        float intensity) {
   config.light = {color, intensity};
   return *this;
 }
 
-ObjectBuilder& ObjectBuilder::withSweep(const Sweep& sweep) {
+ObjectBuilder &ObjectBuilder::withSweep(const Sweep &sweep) {
   config.sweep = sweep;
   return *this;
 }
 
-ObjectConfig ObjectBuilder::build() {
-  return config;
-}
+ObjectConfig ObjectBuilder::build() { return config; }
 
-ObjectBuilder createObject() {
-  return ObjectBuilder{};
-}
+ObjectBuilder createObject() { return ObjectBuilder{}; }
 
 void fps(float deltaTime);
 
@@ -130,7 +162,8 @@ App::App(int width, int height, const std::string &title)
   // load the shaders
   ShaderResult shaderLoadResult = shader.loadShaders();
   if (shaderLoadResult != ShaderResult::Success) {
-    std::cerr << "Failed to load shaders: " << static_cast<int>(shaderLoadResult) << std::endl;
+    std::cerr << "Failed to load shaders: "
+              << static_cast<int>(shaderLoadResult) << std::endl;
     exit(1);
   }
 
@@ -158,33 +191,37 @@ App::App(int width, int height, const std::string &title)
 void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   int obj = registry.createEntity();
 
-  // Get the verts
   if (!cfg.mesh.path.empty()) {
-    registry.getMesh(obj).mesh =
-        resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
+    auto mesh = resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
+    registry.setMesh(obj, std::optional<MeshComp>({mesh}));
+
   } else if (!cfg.sweep.points.empty()) {
-    registry.getMesh(obj).mesh = resourceManager.loadMesh(
+    auto mesh = resourceManager.loadMesh(
         cfg.sweep.points, cfg.sweep.pathSegments, cfg.sweep.circleSegments,
         cfg.sweep.radius, cfg.sweep.color);
+    registry.setMesh(obj, std::optional<MeshComp>({mesh}));
   }
-  registry.getTransform(obj) = cfg.transform;
+
+  registry.setTransform(obj, cfg.transform);
 
   if (cfg.camera.FOV > 0.f) {
-    registry.getCamera(obj) =
-        Camera(cfg.camera.FOV, window.getWidth(), window.getWidth());
+    registry.setCamera(
+        obj, Camera(cfg.camera.FOV, window.getWidth(), cfg.camera.FOV));
   }
 
   if (cfg.light.intensity != 0.f) {
-    registry.getLight(obj) = cfg.light;
+    registry.setLight(obj, std::optional<Light>(cfg.light));
   }
   if (cfg.sineAnim.amplitude != 0.f) {
-    registry.getSineAnimator(obj) = cfg.sineAnim;
+    registry.setSineAnimator(obj, std::optional<SineAnimator>(cfg.sineAnim));
   }
   if (cfg.rotationAnim.rpm != 0.f) {
-    registry.getRotationAnimator(obj) = cfg.rotationAnim;
+    registry.setRotationAnimator(
+        obj, std::optional<RotationAnimator>(cfg.rotationAnim));
   }
   if (!cfg.parAnim.points.empty()) {
-    registry.getParametricAnimator(obj) = cfg.parAnim;
+    registry.setParametricAnimator(
+        obj, std::optional<ParametricAnimator>(cfg.parAnim));
   }
 }
 
@@ -211,12 +248,18 @@ void App::run() {
   std::vector<ObjectConfig> objectConfigs = {
       // === ROLLER COASTER TRACK ===
       createObject()
-          .withSweep({coasterPoints, COASTER_PATH_SEGMENTS, 3000, COASTER_CIRCLE_SEGMENTS, {1, 0, 1}})
+          .withSweep({coasterPoints,
+                      COASTER_PATH_SEGMENTS,
+                      3000,
+                      COASTER_CIRCLE_SEGMENTS,
+                      {1, 0, 1}})
           .build(),
 
       createObject()
           .withMesh("../../Sync/3dEngine-assets/Car/", "Car.obj")
-          .withTransform({0, 20, 0}, {0, 0, 0}, {COASTER_CAR_SCALE, COASTER_CAR_SCALE, COASTER_CAR_SCALE}, -1)
+          .withTransform(
+              {0, 20, 0}, {0, 0, 0},
+              {COASTER_CAR_SCALE, COASTER_CAR_SCALE, COASTER_CAR_SCALE}, -1)
           .withParametricAnimator(coasterPoints, COASTER_CAR_SPEED, 0.f)
           .withCamera(45.f)
           .build(),
@@ -227,7 +270,9 @@ void App::run() {
     objectConfigs.push_back(cfg);
   }
 
-  for (const auto &cfg : genTree(glm::vec3{0, 0, 0}, TREE_HEIGHT_SCALE, TREE_BASE_WIDTH, TREE_NUM_LEVELS, TREE_NUM_PER_LEVEL)) {
+  for (const auto &cfg :
+       genTree(glm::vec3{0, 0, 0}, TREE_HEIGHT_SCALE, TREE_BASE_WIDTH,
+               TREE_NUM_LEVELS, TREE_NUM_PER_LEVEL)) {
     objectConfigs.push_back(cfg);
   }
 
@@ -250,7 +295,7 @@ void App::run() {
         std::chrono::duration<float>(currentTime - prevTime).count();
     prevTime = currentTime;
     totalTime += deltaTime;
-    // fps(deltaTime);
+    fps(deltaTime);
 
     // clear the screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -265,16 +310,15 @@ void App::run() {
     // Collect all lights into uniform buffer
     LightBlock lightBlock{};
     lightBlock.count = 0;
-    for (size_t i = 0; i < registry.entityCount(); i++) {
-      auto &lightOpt = registry.getLight(i);
-      if (lightOpt.has_value() && lightBlock.count < MAX_LIGHTS) {
-        auto &light = lightOpt.value();
-        auto &pos = registry.getTransform(i).position;
-        lightBlock.lights[lightBlock.count].position = pos;
-        lightBlock.lights[lightBlock.count].color = light.color;
-        lightBlock.lights[lightBlock.count].intensity = light.intensity;
-        lightBlock.count++;
-      }
+    for (auto &id : registry.getLightEntityIds()) {
+      auto &lightOpt = registry.getLight(id);
+      auto &light = lightOpt.value();
+      auto &pos = registry.getTransform(id).position;
+
+      lightBlock.lights[lightBlock.count].position = pos;
+      lightBlock.lights[lightBlock.count].color = light.color;
+      lightBlock.lights[lightBlock.count].intensity = light.intensity;
+      lightBlock.count++;
     }
 
     // ensure its bounded

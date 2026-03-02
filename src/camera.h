@@ -8,7 +8,7 @@
 class Camera {
 public:
   Camera(float FOV_, int width_, int height_, float zNear_ = 0.1f,
-         float zFar_ = 100.0f) {
+         float zFar_ = 1000.0f) {
     FOV = FOV_;
     width = width_;
     height = height_;
@@ -53,13 +53,13 @@ public:
                                   (float)width / (float)height, zNear, zFar);
   }
 
-  const glm::mat4& getViewMatrix() {
+  const glm::mat4 &getViewMatrix() {
     viewMatrix = glm::lookAt(position, position + front, up);
     return viewMatrix;
   };
 
-  const glm::mat4& getProjectionMatrix() { return projection; }
-  const glm::vec3& getPosition() const { return position; }
+  const glm::mat4 &getProjectionMatrix() { return projection; }
+  const glm::vec3 &getPosition() const { return position; }
 
 private:
   float FOV, zNear, zFar;
