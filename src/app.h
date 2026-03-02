@@ -16,19 +16,6 @@
 constexpr float MOVEMENT_SPEED = 15.f;
 constexpr float ROTATION_SPEED = 125.f;
 
-constexpr float COASTER_PATH_SEGMENTS = 0.4f;
-constexpr int COASTER_CIRCLE_SEGMENTS = 24;
-constexpr float COASTER_CAR_SPEED = 0.5f;
-constexpr float COASTER_CAR_SCALE = 0.2f;
-
-constexpr float TREE_BASE_WIDTH = 0.25f;
-constexpr int TREE_NUM_LEVELS = 4;
-constexpr int TREE_NUM_PER_LEVEL = 7;
-constexpr float TREE_HEIGHT_SCALE = 3.0f;
-
-constexpr int LIGHT_COUNT = 10;
-constexpr int RAIL_COUNT = 10;
-
 struct InputState {
   bool w = false, a = false, s = false, d = false;
   bool q = false, e = false;
@@ -75,25 +62,6 @@ struct Controls {
   static const int NEXT_CAMERA = GLFW_KEY_C;
 };
 
-class ObjectBuilder {
-public:
-  ObjectBuilder& withMesh(const std::string& path, const std::string& name);
-  ObjectBuilder& withTransform(const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale, int parentId = -1);
-  ObjectBuilder& withSineAnimator(const glm::vec3& axis, float amp, float freq, float phase);
-  ObjectBuilder& withRotationAnimator(const glm::vec3& axis, float rpm);
-  ObjectBuilder& withParametricAnimator(const std::vector<glm::vec3>& points, float speed, float phase);
-  ObjectBuilder& withCamera(float fov);
-  ObjectBuilder& withLight(const glm::vec3& color, float intensity);
-  ObjectBuilder& withSweep(const Sweep& sweep);
-
-  ObjectConfig build();
-
-private:
-  ObjectConfig config;
-};
-
-ObjectBuilder createObject();
-
 class App {
 public:
   App(int width, int height, const std::string &title);
@@ -124,3 +92,79 @@ private:
   UniformBuffer lightUniformBuffer;
   UniformBuffer cameraUniformBuffer;
 };
+
+inline void key_callback(GLFWwindow *window, int key, int, int action, int) {
+  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
+
+  if (!app)
+    return;
+
+  bool pressed = (action == GLFW_PRESS);
+  bool released = (action == GLFW_RELEASE);
+
+  if (!pressed && !released)
+    return;
+
+  switch (key) {
+  case Controls::MOVE_FORWARD:
+    app->getInputState()->w = pressed;
+    return;
+  case Controls::MOVE_BACKWARD:
+    app->getInputState()->s = pressed;
+    return;
+  case Controls::MOVE_LEFT:
+    app->getInputState()->a = pressed;
+    return;
+  case Controls::MOVE_RIGHT:
+    app->getInputState()->d = pressed;
+    return;
+  case Controls::MOVE_DOWN:
+    app->getInputState()->q = pressed;
+    return;
+  case Controls::MOVE_UP:
+    app->getInputState()->e = pressed;
+    return;
+  case Controls::ROTATE_PITCH_UP:
+    app->getInputState()->up = pressed;
+    return;
+  case Controls::ROTATE_PITCH_DOWN:
+    app->getInputState()->down = pressed;
+    return;
+  case Controls::ROTATE_YAW_LEFT:
+    app->getInputState()->left = pressed;
+    return;
+  case Controls::ROTATE_YAW_RIGHT:
+    app->getInputState()->right = pressed;
+    return;
+  case Controls::NEXT_CAMERA:
+    app->getInputState()->c = pressed;
+    return;
+  default:
+    return;
+  }
+}
+
+inline void framebuffer_size_callback(GLFWwindow *window, int width,
+                                      int height) {
+  App *app = static_cast<App *>(glfwGetWindowUserPointer(window));
+
+  if (!app)
+    return;
+
+  // UPDATE WIDTH
+  app->getWindow()->setWidth(width);
+  app->getWindow()->setHeight(height);
+
+  // UPDATE PROJECTION MATRIX
+  for (auto &camera : *app->getCameras()) {
+    camera.updateAspect(width, height);
+  }
+
+  auto &cams = *app->getCameras();
+
+  glUniformMatrix4fv(
+      app->getShader()->getUniformLocation("projection"), 1, GL_FALSE,
+      glm::value_ptr(cams[app->getCameraIndex()].getProjectionMatrix()));
+
+  glViewport(0, 0, width, height);
+}

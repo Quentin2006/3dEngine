@@ -1,4 +1,5 @@
 #pragma once
+#include "../camera.h"
 #include "components.h"
 #include <vector>
 
@@ -12,6 +13,7 @@ public:
     sineAnimators.push_back({});
     rotationAnimators.push_back({});
     parametricAnimators.push_back({});
+    cameras.push_back({});
     return id;
   }
 
@@ -34,12 +36,14 @@ public:
     return parametricAnimators[entity];
   }
   std::optional<Light> &getLight(int entity) { return lights[entity]; }
+  std::optional<Camera> &getCamera(int entity) { return cameras[entity]; }
 
   size_t entityCount() const { return transforms.size(); }
 
   std::vector<Transform> &allTransforms() { return transforms; }
   std::vector<MeshComp> &allMeshes() { return meshes; }
   std::vector<std::optional<Light>> &allLights() { return lights; }
+  std::optional<Camera> &allCamera(int entity) { return cameras[entity]; }
 
 private:
   std::vector<Transform> transforms;
@@ -48,6 +52,7 @@ private:
   std::vector<std::optional<SineAnimator>> sineAnimators;
   std::vector<std::optional<RotationAnimator>> rotationAnimators;
   std::vector<std::optional<ParametricAnimator>> parametricAnimators;
+  std::vector<std::optional<Camera>> cameras;
 
   std::vector<int> sparse;
 };
