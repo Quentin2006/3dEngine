@@ -4,7 +4,6 @@
 #include "vertexBuffer.h"
 
 #include <cmath>
-#include <glm/detail/qualifier.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/quaternion_transform.hpp>
 #include <glm/ext/quaternion_trigonometric.hpp>
@@ -25,15 +24,14 @@
 
 #include <iostream>
 
-Mesh::Mesh(glm::vec3 color) : buffer(), vertexCount(0) {
+Mesh::Mesh(unsigned int textureUniform, glm::vec3 color)
+    : buffer(), vertexCount(0) {
+  unsigned char defaultColor[] = {static_cast<unsigned char>(color.r * 255),
+                                  static_cast<unsigned char>(color.g * 255),
+                                  static_cast<unsigned char>(color.b * 255),
+                                  255}; // RGBA white
   // load with out defaults
-  materials.push_back({0,
-                       0,
-                       0,
-                       32.f,
-                       {static_cast<unsigned char>(color.r * 255),
-                        static_cast<unsigned char>(color.g * 255),
-                        static_cast<unsigned char>(color.b * 255), 255}});
+  materials.push_back({0, 0, 0, 32.f, defaultColor});
 
   // Create default white texture (1x1 pixel)
   glGenTextures(1, &materials[0].imageTexture);
@@ -77,41 +75,25 @@ void Mesh::draw() {
   }
 }
 
-void Mesh::setTexture(const std::string &path, unsigned int materialId,
-                      TextureType type) {
-
-  // if the size exceeds bounds, extend the vector
-  if (materialId >= materials.size()) {
-    materials.push_back({0,
-                         0,
-                         0,
-                         32.f,
-                         {materials[0].color[0], materials[0].color[1],
-                          materials[0].color[2], materials[0].color[3]}});
+void Mesh::setTexture(const std::string &path, TextureType type) {
+  // Delete old texture if exists
+  if (type == TextureType::Diffuse && diffuseTexture != 0) {
+    glDeleteTextures(1, &diffuseTexture);
+  } else if (type == TextureType::Specular && specularTexture != 0) {
+    glDeleteTextures(1, &specularTexture);
+  } else if (type == TextureType::Image && imageTexture != 0) {
+    glDeleteTextures(1, &imageTexture);
   }
 
-  // If we havea texture already, return
-  if (type == TextureType::Diffuse &&
-      materials[materialId].diffuseTexture != 0) {
-    return;
-  } else if (type == TextureType::Specular &&
-             materials[materialId].specularTexture != 0) {
-    return;
-  } else if (type == TextureType::Image &&
-             materials[materialId].imageTexture != 0) {
-    return;
-  }
-
-  // bind texture
   if (type == TextureType::Diffuse) {
-    glGenTextures(1, &materials[materialId].diffuseTexture);
-    glBindTexture(GL_TEXTURE_2D, materials[materialId].diffuseTexture);
+    glGenTextures(1, &diffuseTexture);
+    glBindTexture(GL_TEXTURE_2D, diffuseTexture);
   } else if (type == TextureType::Specular) {
-    glGenTextures(1, &materials[materialId].specularTexture);
-    glBindTexture(GL_TEXTURE_2D, materials[materialId].specularTexture);
+    glGenTextures(1, &specularTexture);
+    glBindTexture(GL_TEXTURE_2D, specularTexture);
   } else if (type == TextureType::Image) {
-    glGenTextures(1, &materials[materialId].imageTexture);
-    glBindTexture(GL_TEXTURE_2D, materials[materialId].imageTexture);
+    glGenTextures(1, &imageTexture);
+    glBindTexture(GL_TEXTURE_2D, imageTexture);
   }
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -159,21 +141,18 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName) {
 
   auto &attrib = reader.GetAttrib();
   auto &shapes = reader.GetShapes();
-  auto &mtlMaterials = reader.GetMaterials();
+  auto &materials = reader.GetMaterials();
 
-  if (!mtlMaterials.empty()) {
-    const auto &mat = mtlMaterials[0];
-    unsigned int materialId = mtlMaterials.size() - 1;
+  if (!materials.empty()) {
+    const auto &mat = materials[0];
     if (!mat.diffuse_texname.empty()) {
-      setTexture(filePath + mat.diffuse_texname, materialId,
-                 TextureType::Diffuse);
+      setTexture(filePath + mat.diffuse_texname, TextureType::Diffuse);
     }
     if (!mat.specular_texname.empty()) {
-      setTexture(filePath + mat.specular_texname, materialId,
-                 TextureType::Specular);
+      setTexture(filePath + mat.specular_texname, TextureType::Specular);
     }
     if (mat.shininess > 1.0f) {
-      materials[materialId].shininess = mat.shininess;
+      shininess = mat.shininess;
     }
   }
 

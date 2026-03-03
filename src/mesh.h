@@ -4,7 +4,6 @@
 #include <glm/detail/qualifier.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 enum TextureType { Diffuse, Specular, Image };
@@ -15,6 +14,7 @@ struct Material {
   unsigned int diffuseTexture;
   float shininess;
   unsigned char color[4];
+  // NOTE: we can add more
 };
 
 // FIXME: we want to hold the materaisl for a vertex inside of a vector
@@ -28,7 +28,7 @@ struct Material {
 
 class Mesh {
 public:
-  Mesh(glm::vec3 color = {1.f, 1.f, 1.f});
+  Mesh(unsigned int textureUniform = 0, glm::vec3 color = {1.f, 1.f, 1.f});
 
   // Prevent copying (vertexBuffer is immobile)
   Mesh(const Mesh &) = delete;
@@ -46,17 +46,22 @@ public:
   // Getters
   size_t getVertexCount() const { return vertexCount; }
   unsigned int getVAO() { return buffer.getVAO(); }
-  float getShininess() const { return materials[0].shininess; }
+  // float getShininess() const { return shininess; }
 
 private:
-  void setTexture(const std::string &path, unsigned int materialId,
-                  TextureType type);
+  void setTexture(const std::string &path, TextureType type);
 
   const std::vector<glm::vec3> generateCircle(int res, float radius);
 
   vertexBuffer buffer;
 
+  // unsigned int imageTexture;
+  // unsigned int specularTexture;
+  // unsigned int diffuseTexture;
+  // float shininess;
+  // glm::vec3 color;
   std::vector<Material> materials;
+
   std::vector<Vertex> vertices;
   size_t vertexCount;
 };
