@@ -16,6 +16,7 @@ public:
   // Load mesh from file, returns cached copy if already loaded
   std::shared_ptr<Mesh> loadMesh(const std::string &path,
                                  const std::string &filename,
+                                 const std::string &texturePath = "",
                                  unsigned int textureUniform = 0);
 
   // Loads mesh from vector of vec3s, radius and res

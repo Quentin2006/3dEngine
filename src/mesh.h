@@ -20,7 +20,8 @@ public:
   void draw();
 
   // Load mesh from OBJ file
-  int loadObj(const std::string &assetsPath, const std::string &objFileName);
+  int loadObj(const std::string &assetsPath, const std::string &objFileName,
+              const std::string &texturePath);
 
   // loads mesh from sweep config
   int loadSweep(const std::vector<glm::vec3> &points, int pathSegments,

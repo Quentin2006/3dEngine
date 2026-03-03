@@ -9,8 +9,15 @@
 #include <iostream>
 
 inline void updateTransforms(Registry &reg) {
+  static bool init = false;
+
   for (auto &t : reg.getTransforms()) {
     t.matrix = glm::mat4(1.0f);
+
+    if (!init) {
+      t.position = t.offset;
+    }
+
     t.matrix = glm::translate(t.matrix, t.position);
     t.matrix =
         glm::rotate(t.matrix, glm::radians(t.rotation.x), glm::vec3(1, 0, 0));
@@ -20,18 +27,20 @@ inline void updateTransforms(Registry &reg) {
         glm::rotate(t.matrix, glm::radians(t.rotation.z), glm::vec3(0, 0, 1));
     t.matrix = glm::scale(t.matrix, t.scale);
 
+    // NOTE: parrents must ALWAYS come before children when loading
     if (t.parentId >= 0) {
       auto &parentTransform = reg.getTransform(t.parentId);
       t.matrix = parentTransform.matrix * t.matrix;
     }
   }
+  init = true;
 }
 
 inline void updateCamera(Registry &reg) {
   for (const auto &id : reg.getCameraEntityIds()) {
     // get the cams transform
-    auto cam = reg.getCamera(id);
-    auto t = reg.getTransform(id);
+    auto &cam = reg.getCamera(id);
+    auto &t = reg.getTransform(id);
 
     cam->setPos(glm::vec3(t.matrix[3]) + t.offset);
   }
@@ -47,7 +56,7 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
     auto &t = reg.getTransform(id);
     float offset =
         sin(totalTime * anim.frequency + anim.phase) * anim.amplitude;
-    t.position += anim.axis * offset;
+    t.position = anim.axis * offset + t.offset;
   }
 
   // UPDATE ROTATION ANIMATORS

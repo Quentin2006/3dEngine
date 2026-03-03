@@ -8,7 +8,7 @@
 
 struct ObjectConfig {
   MeshComp meshObj{nullptr};
-  MeshPath mesh{"", ""};
+  MeshPath mesh{"", "", ""};
   Transform transform{
       {0, 0, 0},
       {0, 0, 0},
@@ -24,8 +24,11 @@ struct ObjectConfig {
 
 class ObjectBuilder {
 public:
-  ObjectBuilder &withMesh(const std::string &path, const std::string &name);
-  ObjectBuilder &withTransform(const glm::vec3 &pos, const glm::vec3 &rot,
+  // will try at auto load textures, however if its unable to locate the
+  // textrueres, you can manualy set the search path
+  ObjectBuilder &withMesh(const std::string &path, const std::string &name,
+                          const std::string &texturePath = "");
+  ObjectBuilder &withTransform(const glm::vec3 &offset, const glm::vec3 &rot,
                                const glm::vec3 &scale, int parentId = -1);
   ObjectBuilder &withSineAnimator(const glm::vec3 &axis, float amp, float freq,
                                   float phase);
