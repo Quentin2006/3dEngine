@@ -25,52 +25,54 @@
 #include <iostream>
 
 Mesh::Mesh(unsigned int textureUniform, glm::vec3 color)
-    : buffer(), vertexCount(0), imageTexture(textureUniform),
-      specularTexture(textureUniform), diffuseTexture(textureUniform),
-      shininess(32.0f), color(color) {
-  unsigned char whitePixel[] = {static_cast<unsigned char>(color.r * 255),
-                                static_cast<unsigned char>(color.g * 255),
-                                static_cast<unsigned char>(color.b * 255),
-                                255}; // RGBA white
+    : buffer(), vertexCount(0) {
+  unsigned char defaultColor[] = {static_cast<unsigned char>(color.r * 255),
+                                  static_cast<unsigned char>(color.g * 255),
+                                  static_cast<unsigned char>(color.b * 255),
+                                  255}; // RGBA white
+  // load with out defaults
+  materials.push_back({0, 0, 0, 32.f, defaultColor});
 
   // Create default white texture (1x1 pixel)
-  glGenTextures(1, &imageTexture);
-  glBindTexture(GL_TEXTURE_2D, imageTexture);
+  glGenTextures(1, &materials[0].imageTexture);
+  glBindTexture(GL_TEXTURE_2D, materials[0].imageTexture);
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               whitePixel);
+               materials[0].color);
 
   // Create default white specular texture (1x1 pixel)
-  glGenTextures(1, &specularTexture);
-  glBindTexture(GL_TEXTURE_2D, specularTexture);
+  glGenTextures(1, &materials[0].specularTexture);
+  glBindTexture(GL_TEXTURE_2D, materials[0].specularTexture);
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               whitePixel);
+               materials[0].color);
 
   // Create default white diffuse texture (1x1 pixel)
-  glGenTextures(1, &diffuseTexture);
-  glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+  glGenTextures(1, &materials[0].diffuseTexture);
+  glBindTexture(GL_TEXTURE_2D, materials[0].diffuseTexture);
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               whitePixel);
+               materials[0].color);
 }
 
 void Mesh::draw() {
   glBindVertexArray(buffer.getVAO());
 
-  // Bind diffuse texture to unit 0
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+  for (const Material &mat : materials) {
+    // Bind diffuse texture to unit 0
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mat.diffuseTexture);
 
-  // Bind specular texture to unit 1
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, specularTexture);
+    // Bind specular texture to unit 1
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, mat.specularTexture);
 
-  // Bind image texture to unit 2
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_2D, imageTexture);
+    // Bind image texture to unit 2
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, mat.imageTexture);
 
-  glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+  }
 }
 
 void Mesh::setTexture(const std::string &path, TextureType type) {
