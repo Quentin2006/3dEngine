@@ -8,24 +8,6 @@
 
 enum TextureType { Diffuse, Specular, Image };
 
-struct Material {
-  unsigned int imageTexture;
-  unsigned int specularTexture;
-  unsigned int diffuseTexture;
-  float shininess;
-  unsigned char color[4];
-  // NOTE: we can add more
-};
-
-// FIXME: we want to hold the materaisl for a vertex inside of a vector
-//
-// Materials[materialID] -> [(imageTexture, specularTexture, diffuseTexture),
-// ...]
-//  each veretex will point to one of these mnaterials
-//
-//  in the vertexBuffer, we can just fgetch the matrial proprties then send it
-//  over to the gpu
-
 class Mesh {
 public:
   Mesh(unsigned int textureUniform = 0, glm::vec3 color = {1.f, 1.f, 1.f});
@@ -46,7 +28,7 @@ public:
   // Getters
   size_t getVertexCount() const { return vertexCount; }
   unsigned int getVAO() { return buffer.getVAO(); }
-  // float getShininess() const { return shininess; }
+  float getShininess() const { return shininess; }
 
 private:
   void setTexture(const std::string &path, TextureType type);
@@ -54,14 +36,12 @@ private:
   const std::vector<glm::vec3> generateCircle(int res, float radius);
 
   vertexBuffer buffer;
-
-  // unsigned int imageTexture;
-  // unsigned int specularTexture;
-  // unsigned int diffuseTexture;
-  // float shininess;
-  // glm::vec3 color;
-  std::vector<Material> materials;
+  size_t vertexCount;
+  unsigned int imageTexture;
+  unsigned int specularTexture;
+  unsigned int diffuseTexture;
+  float shininess;
+  glm::vec3 color;
 
   std::vector<Vertex> vertices;
-  size_t vertexCount;
 };
