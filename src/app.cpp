@@ -143,14 +143,22 @@ void App::run() {
                       {1, 0, 1}})
           .build(),
 
-  };
+      // createObject()
+      //     .withMesh("../../Sync/3dEngine-assets/FerrisWheel/",
+      //               "SM_FerrisWheel_02.obj")
+      //     .build()
+      createObject()
+          .withTransform({10, 10, 10}, {}, {0.001, 0.001, 0.001})
+          .withMesh("../../Sync/3dEngine-assets/uwk4cv8tmzgg-Nimbasa-City/OBJ/",
+                    "Nimbasa City.obj")
+          .build()};
 
   for (const auto &cfg : genLightsForCoaster(coasterPoints, LIGHT_COUNT)) {
     objectConfigs.push_back(cfg);
   }
 
   for (const auto &cfg :
-       genTree(glm::vec3{0, 0, 0}, TREE_HEIGHT_SCALE, TREE_BASE_WIDTH,
+       genTree(glm::vec3{10, 0, 10}, TREE_HEIGHT_SCALE, TREE_BASE_WIDTH,
                TREE_NUM_LEVELS, TREE_NUM_PER_LEVEL)) {
     objectConfigs.push_back(cfg);
   }
