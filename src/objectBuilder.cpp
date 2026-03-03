@@ -1,16 +1,21 @@
 #include "objectBuilder.h"
 
 ObjectBuilder &ObjectBuilder::withMesh(const std::string &path,
-                                       const std::string &name) {
-  config.mesh = {path, name};
+                                       const std::string &name,
+                                       const std::string &texturePath) {
+  config.mesh = {
+      path,
+      name,
+      texturePath,
+  };
   return *this;
 }
 
-ObjectBuilder &ObjectBuilder::withTransform(const glm::vec3 &pos,
+ObjectBuilder &ObjectBuilder::withTransform(const glm::vec3 &offset,
                                             const glm::vec3 &rot,
                                             const glm::vec3 &scale,
                                             int parentId) {
-  config.transform = {pos, rot, scale, parentId};
+  config.transform = {offset, rot, scale, parentId};
   return *this;
 }
 

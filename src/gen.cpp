@@ -43,8 +43,8 @@ std::vector<ObjectConfig> genRailsForCoaster(const std::vector<glm::vec3> &pts,
 
     auto [pos, _] = spline::calculatePosOnSpline(true, numSegments, pts, t);
 
-    const glm::vec3 floorPos = {pos.x, 0.f, pos.z};
-    const glm::vec3 topPos = {pos.x, pos.y, pos.z};
+    const glm::vec3 floorPos = {pos.x / 2, 0.f, pos.z / 2};
+    const glm::vec3 topPos = {pos.x / 2, pos.y, pos.z / 2};
 
     coasterRails.push_back({
         .transform = {floorPos, {0, 0, 0}, {1, 1, 1}, -1},

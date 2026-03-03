@@ -5,6 +5,7 @@
 
 std::shared_ptr<Mesh> ResourceManager::loadMesh(const std::string &path,
                                                 const std::string &filename,
+                                                const std::string &texturePath,
                                                 unsigned int textureUniform) {
   std::string key = path + filename;
 
@@ -20,7 +21,7 @@ std::shared_ptr<Mesh> ResourceManager::loadMesh(const std::string &path,
 
   // Load new mesh
   auto mesh = std::make_shared<Mesh>(textureUniform);
-  int verts = mesh->loadObj(path, filename);
+  int verts = mesh->loadObj(path, filename, texturePath);
   if (verts == 0) {
     std::cerr << "Failed to load mesh: " << key << std::endl;
     return nullptr;

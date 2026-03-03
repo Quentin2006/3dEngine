@@ -55,4 +55,5 @@ struct Sweep {
 struct MeshPath {
   std::string path;
   std::string name;
+  std::string texturePath;
 };

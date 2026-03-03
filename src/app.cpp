@@ -64,7 +64,8 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
   int obj = registry.createEntity();
 
   if (!cfg.mesh.path.empty()) {
-    auto mesh = resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name);
+    auto mesh = resourceManager.loadMesh(cfg.mesh.path, cfg.mesh.name,
+                                         cfg.mesh.texturePath);
     registry.setMesh(obj, std::optional<MeshComp>({mesh}));
 
   } else if (!cfg.sweep.points.empty()) {
@@ -143,14 +144,18 @@ void App::run() {
                       {1, 0, 1}})
           .build(),
 
-      // createObject()
-      //     .withMesh("../../Sync/3dEngine-assets/FerrisWheel/",
-      //               "SM_FerrisWheel_02.obj")
-      //     .build()
       createObject()
-          .withTransform({10, 10, 10}, {}, {0.001, 0.001, 0.001})
-          .withMesh("../../Sync/3dEngine-assets/uwk4cv8tmzgg-Nimbasa-City/OBJ/",
-                    "Nimbasa City.obj")
+          .withTransform({1, 10, 1}, {90, 0, 0}, {2, 1, 1})
+          .withMesh(
+              "../../Sync/3dEngine-assets/free-datsun-280z/source/Datsun_280Z/",
+              "Datsun_280Z.obj",
+              "../../Sync/3dEngine-assets/free-datsun-280z/textures/")
+          .withSineAnimator({0, 0, 1}, 1.f, 2.f, 1.f)
+          // .withMesh("../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj")
+          .build(),
+
+      createObject()
+          .withMesh("../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj")
           .build()};
 
   for (const auto &cfg : genLightsForCoaster(coasterPoints, LIGHT_COUNT)) {
