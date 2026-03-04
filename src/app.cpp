@@ -97,6 +97,7 @@ void App::run() {
   shader.addUniform("model");
   shader.addUniform("diffuseTexture");
   shader.addUniform("specularTexture");
+  shader.addUniform("imageTexture");
   shader.addUniform("shininess");
   shader.addUniform("cameraPos");
 
@@ -113,7 +114,6 @@ void App::run() {
   // ========= NOTE: Setting up car =========
   int carId = registry.createEntity();
   registry.setMesh(carId, std::optional<MeshComp>({resourceManager.loadMesh(
-
                               "../../Sync/3dEngine-assets/Car/", "Car.obj")}));
   registry.setTransform(
       carId,
@@ -131,10 +131,6 @@ void App::run() {
   std::shared_ptr<Camera> camPtr(
       new Camera(45.f, window.getWidth(), window.getHeight()));
 
-  cameras.push_back(camPtr);
-  registry.setCamera(cameraId, camPtr);
-  // ========= NOTE: End of setting up car =========
-
   std::vector<ObjectConfig> objectConfigs = {
       createObject()
           .withSweep({coasterPoints,
@@ -145,18 +141,18 @@ void App::run() {
           .build(),
 
       createObject()
-          .withTransform({1, 10, 1}, {90, 0, 0}, {2, 1, 1})
-          .withMesh(
-              "../../Sync/3dEngine-assets/free-datsun-280z/source/Datsun_280Z/",
-              "Datsun_280Z.obj",
-              "../../Sync/3dEngine-assets/free-datsun-280z/textures/")
-          .withSineAnimator({0, 0, 1}, 1.f, 2.f, 1.f)
-          // .withMesh("../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj")
-          .build(),
+          .withMesh("../../Sync/3dEngine-assets/Amusement Park/Floor/OBJ/",
+                    "Green Lawn.obj",
+                    "../../Sync/3dEngine-assets/Amusement Park/Floor/Texture/"
+                    "grass.png")
+          .withTransform({0, 0, 0}, {0, 0, 0}, {1, .1, 1})
+          .build()
 
-      createObject()
-          .withMesh("../../Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj")
-          .build()};
+  };
+
+  cameras.push_back(camPtr);
+  registry.setCamera(cameraId, camPtr);
+  // ========= NOTE: End of setting up car =========
 
   for (const auto &cfg : genLightsForCoaster(coasterPoints, LIGHT_COUNT)) {
     objectConfigs.push_back(cfg);
@@ -226,6 +222,7 @@ void App::run() {
 
     shader.use();
     renderAll(registry, shader.getUniformLocation("model"),
+              shader.getUniformLocation("imageTexture"),
               shader.getUniformLocation("diffuseTexture"),
               shader.getUniformLocation("specularTexture"),
               shader.getUniformLocation("shininess"));

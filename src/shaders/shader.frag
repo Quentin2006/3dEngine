@@ -8,8 +8,9 @@ in vec3 FragPos;
 in vec3 FaceNormal;
 
 uniform sampler2D imageTexture;
-uniform sampler2D diffuseTexture;
 uniform sampler2D specularTexture;
+uniform sampler2D diffuseTexture;
+
 uniform float shininess = 32.0;
 uniform vec3 cameraPos;
 

@@ -110,8 +110,9 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
   }
 }
 
-inline void renderAll(Registry &reg, GLuint modelUniform, GLint diffuseTexUnit,
-                      GLint specularTexUnit, GLuint shininessLoc) {
+inline void renderAll(Registry &reg, GLuint modelUniform, GLuint imageTexUnit,
+                      GLint diffuseTexUnit, GLint specularTexUnit,
+                      GLuint shininessLoc) {
 
   for (size_t id : reg.getMeshEntityIds()) {
     auto &meshComp = reg.getMesh(id);
@@ -119,8 +120,9 @@ inline void renderAll(Registry &reg, GLuint modelUniform, GLint diffuseTexUnit,
                        glm::value_ptr(reg.getTransform(id).matrix));
 
     // Set texture units for specular lighting
-    glUniform1i(diffuseTexUnit, 0);  // diffuse texture to unit 0
-    glUniform1i(specularTexUnit, 1); // specular texture to unit 1
+    glUniform1i(imageTexUnit, 0);
+    glUniform1i(diffuseTexUnit, 2);
+    glUniform1i(specularTexUnit, 1);
     glUniform1f(shininessLoc, meshComp->mesh->getShininess());
 
     meshComp->mesh->draw();

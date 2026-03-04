@@ -6,43 +6,36 @@
 #include <string>
 #include <vector>
 
+#pragma once
+#include "vertexBuffer.h"
+#include <glm/glm.hpp>
+#include <string>
+#include <vector>
+
 enum TextureType { Diffuse, Specular, Image };
 
 class Mesh {
 public:
-  Mesh(unsigned int textureUniform = 0, glm::vec3 color = {1.f, 1.f, 1.f});
-
-  // Prevent copying (vertexBuffer is immobile)
-  Mesh(const Mesh &) = delete;
-  Mesh &operator=(const Mesh &) = delete;
-
-  // Draw the mesh
+  Mesh(glm::vec3 color = glm::vec3(1.0f));
   void draw();
-
-  // Load mesh from OBJ file
-  int loadObj(const std::string &assetsPath, const std::string &objFileName,
-              const std::string &texturePath);
-
-  // loads mesh from sweep config
+  int loadObj(const std::string &filePath, const std::string &objFileName,
+              const std::string &texturePath = "");
+  bool setTexture(const std::string &path, TextureType type);
   int loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
                 int circleSegments, float radius);
-  // Getters
-  size_t getVertexCount() const { return vertexCount; }
-  unsigned int getVAO() { return buffer.getVAO(); }
+
   float getShininess() const { return shininess; }
 
 private:
-  void setTexture(const std::string &path, TextureType type);
-
-  const std::vector<glm::vec3> generateCircle(int res, float radius);
-
   vertexBuffer buffer;
-  size_t vertexCount;
-  unsigned int imageTexture;
-  unsigned int specularTexture;
-  unsigned int diffuseTexture;
+  int vertexCount;
+  unsigned int imageTextureId; // single texture for this mesh
+  unsigned int specularTextureId;
+  unsigned int diffuseTextureId;
   float shininess;
   glm::vec3 color;
-
   std::vector<Vertex> vertices;
+
+  // other helper methods (generateCircle, loadSweep, etc.)
+  const std::vector<glm::vec3> generateCircle(int res, float radius);
 };

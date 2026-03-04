@@ -19,7 +19,7 @@ genLightsForCoaster(const std::vector<glm::vec3> &coasterPoints, int count) {
   for (int i = 0; i < count; i++) {
     float phase = (float)i / count;
     coasterLights.push_back(
-        {.light = {{1, 1, 1}, 2}, .parAnim = {coasterPoints, .5f, phase}});
+        {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, phase}});
   }
 
   return coasterLights;
