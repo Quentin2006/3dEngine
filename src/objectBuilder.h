@@ -1,5 +1,6 @@
 #pragma once
 
+#include "camera.h"
 #include "ecs/components.h"
 #include <glm/vec3.hpp>
 #include <optional>
@@ -20,6 +21,7 @@ struct ObjectConfig {
   RotationAnimator rotationAnim{{0, 0, 0}, 0.f};
   Sweep sweep{{}, 0, 0, 0, {1, 1, 1}};
   ParametricAnimator parAnim{{}, 0.f, 0.f};
+  bool isCam{false};
 };
 
 class ObjectBuilder {
@@ -37,6 +39,8 @@ public:
                                         float speed, float phase);
   ObjectBuilder &withLight(const glm::vec3 &color, float intensity);
   ObjectBuilder &withSweep(const Sweep &sweep);
+  ObjectBuilder &withCamera(std::vector<std::shared_ptr<Camera>> &cameras,
+                            float fov, int width, int height);
 
   ObjectConfig build();
 

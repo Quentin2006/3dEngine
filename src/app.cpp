@@ -88,8 +88,13 @@ void App::loadObjectFromConfig(const ObjectConfig &cfg) {
         obj, std::optional<RotationAnimator>(cfg.rotationAnim));
   }
   if (!cfg.parAnim.points.empty()) {
-    registry.setParametricAnimator(
-        obj, std::optional<ParametricAnimator>(cfg.parAnim));
+    ParametricAnimator pa = cfg.parAnim;
+    pa.initialRotation = cfg.transform.rotation;
+    registry.setParametricAnimator(obj, std::optional<ParametricAnimator>(pa));
+  }
+  if (cfg.isCam) {
+    ++cameraIndex;
+    registry.setCamera(obj, std::shared_ptr<Camera>(cameras[cameraIndex]));
   }
 }
 
@@ -111,61 +116,78 @@ void App::run() {
       {30, 5, 0},    {20, 8, 15},  {0, 50, 20},  {-20, 8, 15}, {-30, 5, 0},
       {-20, 8, -15}, {0, 12, -20}, {20, 8, -15}, {30, 5, 0}};
 
-  // ========= NOTE: Setting up car =========
-  int carId = registry.createEntity();
-  registry.setMesh(carId, std::optional<MeshComp>({resourceManager.loadMesh(
-                              "../../Sync/3dEngine-assets/Car/", "Car.obj")}));
-  registry.setTransform(
-      carId,
-      {glm::vec3{0, 20, 0}, glm::vec3{0, 0, 0},
-       glm::vec3{COASTER_CAR_SCALE, COASTER_CAR_SCALE, COASTER_CAR_SCALE}, -1});
-  registry.setParametricAnimator(carId,
-                                 std::optional<ParametricAnimator>(
-                                     {coasterPoints, COASTER_CAR_SPEED, 0.f}));
-
-  // add cmaera to entity
-  int cameraId = registry.createEntity();
-  registry.setTransform(cameraId, {glm::vec3{0, 10, 0}, glm::vec3{0, 0, 0},
-                                   glm::vec3{1, 1, 1}, carId});
-
-  std::shared_ptr<Camera> camPtr(
-      new Camera(45.f, window.getWidth(), window.getHeight()));
-
   std::vector<ObjectConfig> objectConfigs = {
+      // ========= NOTE: Setting up car w/ camera =========
+      // coaster cart
       createObject()
-          .withSweep({coasterPoints,
-                      COASTER_PATH_SEGMENTS,
-                      3000,
-                      COASTER_CIRCLE_SEGMENTS,
-                      {1, 0, 1}})
+          .withMesh("/home/qscheetz/Sync/3dEngine-assets/Amusement "
+                    "Park/RollerCoaster/source/",
+                    "model (1).obj")
+          .withTransform(glm::vec3{0, 0, 0}, glm::vec3{0, 90, 0},
+                         glm::vec3{3, 3, 3})
+          .withParametricAnimator(coasterPoints, 1, 1.f)
           .build(),
 
+      // cam
       createObject()
-          .withMesh("../../Sync/3dEngine-assets/Amusement Park/Floor/OBJ/",
-                    "Green Lawn.obj",
-                    "../../Sync/3dEngine-assets/Amusement Park/Floor/Texture/"
-                    "grass.png")
-          .withTransform({0, 0, 0}, {0, 0, 0}, {1, .1, 1})
-          .build()
+          .withTransform({0, 1, 0}, {0, 0, 0}, {1, 1, 1}, 0)
+          .withCamera(cameras, 45.f, window.getWidth(), window.getHeight())
+          .build(),
+
+      // roller coaster
+      createObject()
+          .withSweep({coasterPoints, COASTER_RADIUS, COASTER_PATH_SEGMENTS,
+                      COASTER_CIRCLE_SEGMENTS, COASTER_COLOR})
+          .build(),
+
+      // sun
+      createObject()
+          .withMesh(
+              "/home/qscheetz/Sync/3dEngine-assets/Amusement Park/Sky/sol/",
+              "sol.obj",
+              "/home/qscheetz/Sync/3dEngine-assets/Amusement "
+              "Park/Sky/sol/2k_sun.jpg")
+          .withTransform({0, 900, 0}, {0, 0, 0}, {.001, .001, .001})
+          .withRotationAnimator({0, 1, 0}, 10)
+          .build(),
+
+      // suns light
+      createObject()
+          .withLight({1, 1, 1}, 100.f)
+          .withTransform({0, -50, 0}, {0, 0, 0}, {1, 1, 1}, 3)
+          .build(),
+
+      // floor
+      createObject()
+          .withMesh("/home/qscheetz/Sync/3dEngine-assets/Amusement "
+                    "Park/Floor/",
+                    "plane.obj",
+                    "/home/qscheetz/Sync/3dEngine-assets/Amusement "
+                    "Park/Floor/grass.jpg")
+          .withTransform(glm::vec3{0, 0, 0}, glm::vec3{0, 0, 0},
+                         glm::vec3{WORLD_WIDTH + 5, 0, WORLD_WIDTH + 5})
+          .build(),
 
   };
-
-  cameras.push_back(camPtr);
-  registry.setCamera(cameraId, camPtr);
-  // ========= NOTE: End of setting up car =========
-
-  for (const auto &cfg : genLightsForCoaster(coasterPoints, LIGHT_COUNT)) {
-    objectConfigs.push_back(cfg);
-  }
-
-  for (const auto &cfg :
-       genTree(glm::vec3{10, 0, 10}, TREE_HEIGHT_SCALE, TREE_BASE_WIDTH,
-               TREE_NUM_LEVELS, TREE_NUM_PER_LEVEL)) {
-    objectConfigs.push_back(cfg);
-  }
-
+  // ADD COASTER SUPPORTS
   for (const auto &cfg : genRailsForCoaster(coasterPoints, RAIL_COUNT)) {
     objectConfigs.push_back(cfg);
+  }
+
+  // MAKE TREES
+  for (int i = -WORLD_WIDTH / 2; i < WORLD_WIDTH / 2; i += 2) {
+    for (int j = -WORLD_WIDTH / 2; j < WORLD_WIDTH / 2; j += 2) {
+      glm::vec3 pos = glm::vec3{i * 10, 0, j * 10};
+      glm::vec3 randOffset = glm::vec3{rand() % 10 - 5, 0, rand() % 10 - 5};
+      glm::vec3 offset = pos + randOffset;
+
+      float randomHeight = TREE_HEIGHT_SCALE + rand() % 3;
+      float randomWidth = TREE_BASE_WIDTH + ((rand() * 10) % 3) / 10.f;
+
+      for (const auto &cfg : genTree(offset, randomHeight, randomWidth, 4, 2)) {
+        objectConfigs.push_back(cfg);
+      }
+    }
   }
 
   std::cerr << "Loading meshes: " << objectConfigs.size() << std::endl;
@@ -189,8 +211,8 @@ void App::run() {
 
     moveCamera(deltaTime);
 
-    updateTransforms(registry);
     updateAnimations(registry, deltaTime);
+    updateTransforms(registry);
     updateCamera(registry);
 
     LightBlock lightBlock{};

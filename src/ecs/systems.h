@@ -104,8 +104,8 @@ inline void updateAnimations(Registry &reg, float deltaTime) {
       float yaw = glm::degrees(std::atan2(-tangent.z, tangent.x));
       float pitch = glm::degrees(std::asin(glm::clamp(tangent.y, -1.0f, 1.0f)));
 
-      // Apply rotation so entity faces along the path
-      t.rotation = {pitch, yaw, 0.0f};
+      // Apply rotation so entity faces along the path (add to initial rotation)
+      t.rotation = anim.initialRotation + glm::vec3{pitch, yaw, 0};
     }
   }
 }
