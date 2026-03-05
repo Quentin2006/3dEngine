@@ -20,6 +20,13 @@ public:
   void draw();
   int loadObj(const std::string &filePath, const std::string &objFileName,
               const std::string &texturePath = "");
+  int loadVertices(const std::vector<Vertex> &v) {
+    vertices.clear();
+    vertices = v;
+    vertexCount = vertices.size();
+    buffer.uploadVertices(vertices);
+    return vertices.size();
+  }
   bool setTexture(const std::string &path, TextureType type);
   int loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
                 int circleSegments, float radius);
@@ -29,7 +36,7 @@ public:
 private:
   vertexBuffer buffer;
   int vertexCount;
-  unsigned int imageTextureId; // single texture for this mesh
+  unsigned int imageTextureId;
   unsigned int specularTextureId;
   unsigned int diffuseTextureId;
   float shininess;

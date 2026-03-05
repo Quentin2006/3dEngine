@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "controls.h"
 #include "ecs/registry.h"
+#include "fractal_terrain.h"
 #include "objectBuilder.h"
 #include "resource_manager.h"
 #include "shader.h"
