@@ -42,77 +42,45 @@ std::vector<Vertex> FractalTerrain::generateTerrain(int subDivCount,
   return verts;
 }
 
+Vertex midVertex(Vertex &v1, Vertex &v2) {
+  glm::vec3 pos = glm::mix(v1.position, v2.position, 0.5f);
+  glm::vec2 texCoord = glm::mix(v1.texCoord, v2.texCoord, 0.5f);
+  glm::vec3 normal = glm::mix(v1.normal, v2.normal, 0.5f);
+
+  return {pos, texCoord, normal};
+}
+
 void FractalTerrain::generateSubDivEdges(int subDivCount) {
   if (subDivCount == 0) {
     return;
   }
 
-  // Copy old vertices
-  std::vector<Vertex> newVerts;
-
-  // for all edges
-  int edgeCount = edges.size();
-  for (int i = 0; i < edgeCount; i++) {
-
-    glm::vec3 randNoise = {0, ((rand() % 10) - 5) / 10.f, 0};
-    std::cerr << randNoise.y << std::endl;
-
-    // Create and store new vertex
-    glm::vec3 pos =
-        glm::mix(edges[i].first.position, edges[i].second.position, 0.5f) +
-        randNoise;
-    glm::vec2 texCoord =
-        glm::mix(edges[i].first.texCoord, edges[i].second.texCoord, 0.5f);
-    glm::vec3 normal =
-        glm::mix(edges[i].first.normal, edges[i].second.normal, 0.5f);
-
-    newVerts.push_back({pos, texCoord, normal});
-  }
-
-  // Create and store new edges(will be interior)
-  std::vector<std::pair<Vertex, Vertex>> interiorEdges;
-  int newVertsCount = newVerts.size();
-  for (int i = 0; i < newVertsCount; i++) {
-    for (int j = i + 1; j < newVertsCount; j++) {
-      interiorEdges.push_back({newVerts[i], newVerts[j]});
-      edges.push_back({newVerts[i], newVerts[j]});
-    }
-  }
-
   // for all faces
   int faceCount = faces.size();
-  std::vector<std::tuple<Vertex, Vertex, Vertex>> newFaces;
   for (int i = 0; i < faceCount; i++) {
-    // go throgh each vert in the face
-    auto oldV1 = std::get<0>(faces[i]);
-    auto oldV2 = std::get<1>(faces[i]);
-    auto oldV3 = std::get<2>(faces[i]);
+    auto A = std::get<0>(faces[i]);
+    auto B = std::get<1>(faces[i]);
+    auto C = std::get<2>(faces[i]);
 
-    // connnect oldv1 to edges 1
-    std::tuple<Vertex, Vertex, Vertex> newFace1 = {
-        oldV1, interiorEdges[1].first, interiorEdges[1].second};
-    // connnect oldv2 to edges 0
-    std::tuple<Vertex, Vertex, Vertex> newFace2 = {
-        oldV2, interiorEdges[0].first, interiorEdges[0].second};
+    // add noise to each vertex
+    A.position += glm::vec3(0, ((rand() % 10) - 5) / 100.f, 0);
+    B.position += glm::vec3(0, ((rand() % 10) - 5) / 100.f, 0);
+    C.position += glm::vec3(0, ((rand() % 10) - 5) / 100.f, 0);
 
-    // connnect oldv3 to edges 2
-    std::tuple<Vertex, Vertex, Vertex> newFace3 = {
-        oldV3, interiorEdges[2].first, interiorEdges[2].second};
+    // Compute midpoints for THIS faces 3 edges
+    Vertex midAB = midVertex(A, B);
+    Vertex midBC = midVertex(B, C);
+    Vertex midCA = midVertex(C, A);
 
-    // connect all edges for the middle
-    std::tuple<Vertex, Vertex, Vertex> newFace4 = {interiorEdges[0].first,
-                                                   interiorEdges[0].second,
-                                                   interiorEdges[1].second};
-
-    faces.push_back(newFace1);
-    faces.push_back(newFace2);
-    faces.push_back(newFace3);
-    faces.push_back(newFace4);
+    // 4 new faces
+    faces.push_back({A, midAB, midCA});
+    faces.push_back({B, midBC, midAB});
+    faces.push_back({C, midCA, midBC});
+    faces.push_back({midAB, midBC, midCA});
   }
-  // remove old faces
-  for (int i = 0; i < faceCount; i++) {
-    faces.erase(faces.begin());
-  }
+
+  // remove stale faces
+  faces.erase(faces.begin(), faces.begin() + faceCount);
 
   return FractalTerrain::generateSubDivEdges(subDivCount - 1);
 }

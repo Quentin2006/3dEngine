@@ -216,7 +216,7 @@ void App::run() {
   v3.normal = glm::vec3(0.0f, 1.0f, 0.0f);
   FractalTerrain fractalTerrain;
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 7; i++) {
     auto mesh = std::make_shared<Mesh>();
     int count =
         mesh->loadVertices(fractalTerrain.generateTerrain(i, v1, v2, v3));
