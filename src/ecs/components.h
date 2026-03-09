@@ -41,6 +41,7 @@ struct ParametricAnimator {
   std::vector<glm::vec3> points;
   float speed;
   float phase;
+  glm::vec3 initialRotation{0, 0, 0};
 };
 
 // NOTE: These are used to generate the above
@@ -56,4 +57,10 @@ struct MeshPath {
   std::string path;
   std::string name;
   std::string texturePath;
+};
+
+struct CameraOpts {
+  float fov;
+  int width;
+  int height;
 };

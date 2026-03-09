@@ -49,6 +49,17 @@ ObjectBuilder &ObjectBuilder::withSweep(const Sweep &sweep) {
   return *this;
 }
 
+ObjectBuilder &
+ObjectBuilder::withCamera(std::vector<std::shared_ptr<Camera>> &cameras,
+                          float fov, int width, int height) {
+
+  std::shared_ptr<Camera> camPtr(new Camera(fov, width, height));
+
+  cameras.push_back(camPtr);
+  config.isCam = true;
+  return *this;
+}
+
 ObjectConfig ObjectBuilder::build() { return config; }
 
 ObjectBuilder createObject() { return ObjectBuilder{}; }

@@ -24,104 +24,145 @@
 
 #include <iostream>
 
-Mesh::Mesh(unsigned int textureUniform, glm::vec3 color)
-    : buffer(), vertexCount(0) {
-  unsigned char defaultColor[] = {static_cast<unsigned char>(color.r * 255),
-                                  static_cast<unsigned char>(color.g * 255),
-                                  static_cast<unsigned char>(color.b * 255),
-                                  255}; // RGBA white
-  // load with out defaults
-  materials.push_back({0, 0, 0, 32.f, defaultColor});
+Mesh::Mesh(glm::vec3 color)
+    : buffer(), vertexCount(0), imageTextureId(0), specularTextureId(1),
+      diffuseTextureId(2), shininess(32.0f), color(color) {
+  // Create default 1x1 texture with the given color (rgba)
+  unsigned char pixel[] = {
+      static_cast<unsigned char>(glm::clamp(color.r, 0.0f, 1.0f) * 255.0f),
+      static_cast<unsigned char>(glm::clamp(color.g, 0.0f, 1.0f) * 255.0f),
+      static_cast<unsigned char>(glm::clamp(color.b, 0.0f, 1.0f) * 255.0f),
+      255};
 
-  // Create default white texture (1x1 pixel)
-  glGenTextures(1, &materials[0].imageTexture);
-  glBindTexture(GL_TEXTURE_2D, materials[0].imageTexture);
+  // NOTE: needed to manualy init texter with all params
+  auto initTex = [&](GLuint &id) {
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_2D, id);
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               materials[0].color);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  // Create default white specular texture (1x1 pixel)
-  glGenTextures(1, &materials[0].specularTexture);
-  glBindTexture(GL_TEXTURE_2D, materials[0].specularTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 pixel);
+  };
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               materials[0].color);
+  initTex(imageTextureId);
+  initTex(specularTextureId);
+  initTex(diffuseTextureId);
 
-  // Create default white diffuse texture (1x1 pixel)
-  glGenTextures(1, &materials[0].diffuseTexture);
-  glBindTexture(GL_TEXTURE_2D, materials[0].diffuseTexture);
+  // Set reasonable default params for the placeholder texture
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               materials[0].color);
+  // Upload single-pixel RGBA
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+               pixel);
 }
 
 void Mesh::draw() {
   glBindVertexArray(buffer.getVAO());
 
-  for (const Material &mat : materials) {
-    // Bind diffuse texture to unit 0
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mat.diffuseTexture);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, imageTextureId);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, specularTextureId);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, diffuseTextureId);
 
-    // Bind specular texture to unit 1
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, mat.specularTexture);
-
-    // Bind image texture to unit 2
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, mat.imageTexture);
-
-    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-  }
+  glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }
 
-void Mesh::setTexture(const std::string &path, TextureType type) {
+bool Mesh::setTexture(const std::string &path, TextureType type) {
   // Delete old texture if exists
-  if (type == TextureType::Diffuse && diffuseTexture != 0) {
-    glDeleteTextures(1, &diffuseTexture);
-  } else if (type == TextureType::Specular && specularTexture != 0) {
-    glDeleteTextures(1, &specularTexture);
-  } else if (type == TextureType::Image && imageTexture != 0) {
-    glDeleteTextures(1, &imageTexture);
+  if (type == TextureType::Diffuse && diffuseTextureId != 0) {
+    glDeleteTextures(1, &diffuseTextureId);
+    diffuseTextureId = 0;
+  } else if (type == TextureType::Specular && specularTextureId != 0) {
+    glDeleteTextures(1, &specularTextureId);
+    specularTextureId = 0;
+  } else if (type == TextureType::Image && imageTextureId != 0) {
+    glDeleteTextures(1, &imageTextureId);
+    imageTextureId = 0;
   }
 
   if (type == TextureType::Diffuse) {
-    glGenTextures(1, &diffuseTexture);
-    glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+    glGenTextures(1, &diffuseTextureId);
+    glBindTexture(GL_TEXTURE_2D, diffuseTextureId);
   } else if (type == TextureType::Specular) {
-    glGenTextures(1, &specularTexture);
-    glBindTexture(GL_TEXTURE_2D, specularTexture);
+    glGenTextures(1, &specularTextureId);
+    glBindTexture(GL_TEXTURE_2D, specularTextureId);
   } else if (type == TextureType::Image) {
-    glGenTextures(1, &imageTexture);
-    glBindTexture(GL_TEXTURE_2D, imageTexture);
+    glGenTextures(1, &imageTextureId);
+    glBindTexture(GL_TEXTURE_2D, imageTextureId);
   }
 
+  // Texture parameters
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                   GL_LINEAR_MIPMAP_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  int width, height, nrChannels;
+  // Pixel alignment for arbitrary widths
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  int width = 0, height = 0, nrChannels = 0;
   unsigned char *data =
       stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
-
-  if (data) {
-    std::cerr << "Loading texture: " << path << std::endl;
-    GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
-
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
+  if (!data) {
     std::cerr << "Failed to load texture: " << path << std::endl;
-    // Fallback to white texture
-    unsigned char whitePixel[] = {255, 255, 255, 255};
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                 whitePixel);
+    // fallback: single white pixel
+    unsigned char white[] = {255, 255, 255, 255};
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 white);
+    return false;
   }
+
+  // Check max texture size
+  GLint maxSize = 0;
+  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
+  if (width > maxSize || height > maxSize) {
+    std::cerr << "Texture " << path << " is " << width << "x" << height
+              << " which exceeds GL_MAX_TEXTURE_SIZE (" << maxSize
+              << "). Falling back to white texture.\n";
+    stbi_image_free(data);
+    unsigned char white[] = {255, 255, 255, 255};
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 white);
+    return false;
+  }
+
+  GLenum format = GL_RGB;
+  GLenum internalFormat = GL_RGB8;
+  if (nrChannels == 1) {
+    format = GL_RED;
+    internalFormat = GL_R8;
+  } else if (nrChannels == 3) {
+    format = GL_RGB;
+    internalFormat = GL_RGB8;
+  } else if (nrChannels == 4) {
+    format = GL_RGBA;
+    internalFormat = GL_RGBA8;
+  } else {
+    // Unexpected channel count — treat as RGBA
+    format = GL_RGBA;
+    internalFormat = GL_RGBA8;
+  }
+
+  // Upload and generate mipmaps
+  glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format,
+               GL_UNSIGNED_BYTE, data);
+  glGenerateMipmap(GL_TEXTURE_2D);
+
   stbi_image_free(data);
+  std::cerr << "Loaded texture: " << path << " (" << width << "x" << height
+            << ", " << nrChannels << "chan)\n";
+  return true;
 }
 
 int Mesh::loadObj(const std::string &filePath, const std::string &objFileName,
@@ -140,19 +181,17 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName,
     std::cout << "TinyObjReader: " << reader.Warning();
   }
 
-  if (!texturePath.empty()) {
-    readerConfig.mtl_search_path = texturePath;
-  }
-
   auto &attrib = reader.GetAttrib();
   auto &shapes = reader.GetShapes();
   auto &materials = reader.GetMaterials();
 
   if (!materials.empty()) {
     const auto &mat = materials[0];
+    // set diffuse texture if present
     if (!mat.diffuse_texname.empty()) {
       setTexture(filePath + mat.diffuse_texname, TextureType::Diffuse);
     }
+    // set specular texture if present
     if (!mat.specular_texname.empty()) {
       setTexture(filePath + mat.specular_texname, TextureType::Specular);
     }
@@ -161,6 +200,11 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName,
     }
   }
 
+  if (!texturePath.empty()) {
+    setTexture(texturePath, TextureType::Image);
+  }
+
+  vertices.clear();
   vertices.reserve(attrib.vertices.size() / 3);
 
   for (size_t s = 0; s < shapes.size(); s++) {
@@ -169,7 +213,8 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName,
       size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
       glm::vec3 faceNormal(0, 0, 1);
-      if (fv >= 3 && shapes[s].mesh.indices[index_offset].normal_index < 0) {
+      if (fv >= 3 &&
+          shapes[s].mesh.indices[index_offset].normal_index < 0) { // compute
         tinyobj::index_t idx0 = shapes[s].mesh.indices[index_offset + 0];
         tinyobj::index_t idx1 = shapes[s].mesh.indices[index_offset + 1];
         tinyobj::index_t idx2 = shapes[s].mesh.indices[index_offset + 2];
@@ -210,6 +255,8 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName,
           tinyobj::real_t ty =
               1 - attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
           vertex.texCoord = glm::vec2(tx, ty);
+        } else {
+          vertex.texCoord = glm::vec2(0.0f);
         }
 
         vertices.push_back(vertex);
@@ -219,10 +266,12 @@ int Mesh::loadObj(const std::string &filePath, const std::string &objFileName,
   }
 
   buffer.uploadVertices(vertices);
-  vertexCount = vertices.size();
+  vertexCount = static_cast<int>(vertices.size());
   return vertexCount;
 }
 
+// Sweep and generateCircle implementations remain the same as your original
+// file (omitted here for brevity — copy-paste your existing implementations).
 int Mesh::loadSweep(const std::vector<glm::vec3> &points, int pathSegments,
                     int circleSegments, float radius) {
   if (points.size() < 2)

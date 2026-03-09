@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "controls.h"
 #include "ecs/registry.h"
+#include "fractal_terrain.h"
 #include "objectBuilder.h"
 #include "resource_manager.h"
 #include "shader.h"
@@ -16,18 +17,20 @@
 constexpr float MOVEMENT_SPEED = 15.f;
 constexpr float ROTATION_SPEED = 125.f;
 
-constexpr float COASTER_PATH_SEGMENTS = 0.4f;
+constexpr int COASTER_PATH_SEGMENTS = 1000;
 constexpr int COASTER_CIRCLE_SEGMENTS = 24;
 constexpr float COASTER_CAR_SPEED = 0.5f;
 constexpr float COASTER_CAR_SCALE = 0.2f;
+constexpr float COASTER_RADIUS = 0.2f;
+constexpr glm::vec3 COASTER_COLOR = {1, .25, .2};
 
 constexpr float TREE_BASE_WIDTH = 0.25f;
-constexpr int TREE_NUM_LEVELS = 4;
-constexpr int TREE_NUM_PER_LEVEL = 7;
-constexpr float TREE_HEIGHT_SCALE = 3.0f;
+constexpr int TREE_NUM_PER_LEVEL = 3;
+constexpr float TREE_HEIGHT_SCALE = 2.0f;
 
-constexpr int LIGHT_COUNT = 10;
 constexpr int RAIL_COUNT = 10;
+
+constexpr int WORLD_WIDTH = 15;
 
 struct InputState {
   bool w = false, a = false, s = false, d = false;

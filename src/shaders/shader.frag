@@ -8,8 +8,9 @@ in vec3 FragPos;
 in vec3 FaceNormal;
 
 uniform sampler2D imageTexture;
-uniform sampler2D diffuseTexture;
 uniform sampler2D specularTexture;
+uniform sampler2D diffuseTexture;
+
 uniform float shininess = 32.0;
 uniform vec3 cameraPos;
 
@@ -42,7 +43,7 @@ void main()
   vec3 viewDir = normalize(cameraPos - FragPos);
 
   // Ambient lighting contribution (5% of diffuse color)
-  vec3 ambient = diffuseColor.rgb * 0.05;
+  vec3 ambient = diffuseColor.rgb * 0.75;
   vec3 totalLight = vec3(0.0);
 
   // Iterate through all lights in the light block
