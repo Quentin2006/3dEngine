@@ -335,7 +335,7 @@ void App::moveCamera(float deltaTime) {
 
   //
   if (input.subdivUp && !input.subdivUp_pressed) {
-    if (subdivLevel < 15) {
+    if (subdivLevel < 11) {
       subdivLevel++;
       regenerateTerrain();
     }
