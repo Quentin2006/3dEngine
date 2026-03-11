@@ -38,6 +38,8 @@ struct InputState {
   bool up = false, down = false, left = false, right = false;
   bool c = false;
   bool c_pressed = false;
+  bool subdivUp = false, subdivDown = false;
+  bool subdivUp_pressed = false, subdivDown_pressed = false;
 };
 
 class App {
@@ -58,6 +60,7 @@ private:
   bool loadShaders();
   void loadObjectFromConfig(const ObjectConfig &cfg);
   void loadObjectsFromConfig(const std::vector<ObjectConfig> &configs);
+  void regenerateTerrain();
 
   Window window;
   Shader shader;
@@ -69,4 +72,9 @@ private:
   Registry registry;
   UniformBuffer lightUniformBuffer;
   UniformBuffer cameraUniformBuffer;
+
+  int subdivLevel = 0;
+  GLuint terrainEntityId;
+  Vertex terrainV1, terrainV2, terrainV3;
+  std::shared_ptr<Mesh> terrainMesh;
 };

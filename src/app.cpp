@@ -5,6 +5,7 @@
 #include "ecs/registry.h"
 #include "ecs/systems.h"
 #include "gen.h"
+#include "mesh.h"
 #include "objectBuilder.h"
 #include "resource_manager.h"
 #include "uniformBuffer.h"
@@ -50,9 +51,9 @@ App::App(int width, int height, const std::string &title)
   glClearColor(0.2f, 0.2f, 0.5f, 1.f);
   glEnable(GL_DEPTH_TEST);
 
-  // glEnable(GL_CULL_FACE);
-  // glCullFace(GL_BACK);
-  // glFrontFace(GL_CCW);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glFrontFace(GL_CCW);
 
   glfwSetWindowUserPointer(window.getGLFWwindow(), this);
   glfwSetKeyCallback(window.getGLFWwindow(), key_callback);
@@ -116,117 +117,132 @@ void App::run() {
       {30, 5, 0},    {20, 8, 15},  {0, 50, 20},  {-20, 8, 15}, {-30, 5, 0},
       {-20, 8, -15}, {0, 12, -20}, {20, 8, -15}, {30, 5, 0}};
 
-  // std::vector<ObjectConfig> objectConfigs = {
-  //     // ========= NOTE: Setting up car w/ camera =========
-  //     // coaster cart
-  //     createObject()
-  //         .withMesh("/home/qscheetz/Sync/3dEngine-assets/Amusement "
-  //                   "Park/RollerCoaster/source/",
-  //                   "model (1).obj")
-  //         .withTransform(glm::vec3{0, 0, 0}, glm::vec3{0, 90, 0},
-  //                        glm::vec3{3, 3, 3})
-  //         .withParametricAnimator(coasterPoints, 1, 1.f)
-  //         .build(),
-  //
-  //     // cam
-  //     createObject()
-  //         .withTransform({0, 1, 0}, {0, 0, 0}, {1, 1, 1}, 0)
-  //         .withCamera(cameras, 45.f, window.getWidth(), window.getHeight())
-  //         .build(),
-  //
-  //     // roller coaster
-  //     createObject()
-  //         .withSweep({coasterPoints, COASTER_RADIUS, COASTER_PATH_SEGMENTS,
-  //                     COASTER_CIRCLE_SEGMENTS, COASTER_COLOR})
-  //         .build(),
-  //
-  //     // sun
-  //     createObject()
-  //         .withMesh(
-  //             "/home/qscheetz/Sync/3dEngine-assets/Amusement Park/Sky/sol/",
-  //             "sol.obj",
-  //             "/home/qscheetz/Sync/3dEngine-assets/Amusement "
-  //             "Park/Sky/sol/2k_sun.jpg")
-  //         .withTransform({0, 900, 0}, {0, 0, 0}, {.001, .001, .001})
-  //         .withRotationAnimator({0, 1, 0}, 10)
-  //         .build(),
-  //
-  //     // suns light
-  //     createObject()
-  //         .withLight({1, 1, 1}, 100.f)
-  //         .withTransform({0, -50, 0}, {0, 0, 0}, {1, 1, 1}, 3)
-  //         .build(),
-  //
-  //     // floor
-  //     createObject()
-  //         .withMesh("/home/qscheetz/Sync/3dEngine-assets/Amusement "
-  //                   "Park/Floor/",
-  //                   "plane.obj",
-  //                   "/home/qscheetz/Sync/3dEngine-assets/Amusement "
-  //                   "Park/Floor/grass.jpg")
-  //         .withTransform(glm::vec3{0, 0, 0}, glm::vec3{0, 0, 0},
-  //                        glm::vec3{WORLD_WIDTH + 5, 0, WORLD_WIDTH + 5})
-  //         .build(),
-  //
-  // };
-  // // ADD COASTER SUPPORTS
-  // for (const auto &cfg : genRailsForCoaster(coasterPoints, RAIL_COUNT)) {
-  //   objectConfigs.push_back(cfg);
-  // }
-  //
-  // // MAKE TREES
-  // for (int i = -WORLD_WIDTH / 2; i < WORLD_WIDTH / 2; i += 2) {
-  //   for (int j = -WORLD_WIDTH / 2; j < WORLD_WIDTH / 2; j += 2) {
-  //     glm::vec3 pos = glm::vec3{i * 10, 0, j * 10};
-  //     glm::vec3 randOffset = glm::vec3{rand() % 10 - 5, 0, rand() % 10 - 5};
-  //     glm::vec3 offset = pos + randOffset;
-  //
-  //     float randomHeight = TREE_HEIGHT_SCALE + rand() % 3;
-  //     float randomWidth = TREE_BASE_WIDTH + ((rand() * 10) % 3) / 10.f;
-  //
-  //     for (const auto &cfg : genTree(offset, randomHeight, randomWidth, 4,
-  //     2)) {
-  //       objectConfigs.push_back(cfg);
-  //     }
-  //   }
-  // }
-  // std::cerr << "Loading meshes: " << objectConfigs.size() << std::endl;
-  // for (const auto &cfg : objectConfigs) {
-  //   loadObjectFromConfig(cfg);
-  // }
+  std::vector<ObjectConfig> objectConfigs = {
+      // ========= NOTE: Setting up car w/ camera =========
+      // coaster cart
+      createObject()
+          .withMesh("/home/qscheetz/Sync/3dEngine-assets/Amusement "
+                    "Park/RollerCoaster/source/",
+                    "model (1).obj")
+          .withTransform(glm::vec3{0, 0, 0}, glm::vec3{0, 90, 0},
+                         glm::vec3{3, 3, 3})
+          .withParametricAnimator(coasterPoints, 1, 1.f)
+          .build(),
+
+      // Cube orbiting the coaster cart
+      createObject()
+          .withMesh("/home/qscheetz/Sync/3dEngine-assets/3d-cubes/", "cube.obj")
+          .withTransform({2, 0, 0}, {0, 0, 0}, {0.5, 0.5, 0.5}, 0)
+          .withRotationAnimator({0, 1, 0}, 20)
+          .withSineAnimator({0, 1, 0}, 0.5, 3, 0)
+          .build(),
+
+      // cam
+      createObject()
+          .withTransform({0, 1, 0}, {0, 0, 0}, {1, 1, 1}, 0)
+          .withCamera(cameras, 45.f, window.getWidth(), window.getHeight())
+          .build(),
+
+      // roller coaster
+      createObject()
+          .withSweep({coasterPoints, COASTER_RADIUS, COASTER_PATH_SEGMENTS,
+                      COASTER_CIRCLE_SEGMENTS, COASTER_COLOR})
+          .build(),
+
+      // sun
+      createObject()
+          .withMesh(
+              "/home/qscheetz/Sync/3dEngine-assets/Amusement Park/Sky/sol/",
+              "sol.obj",
+              "/home/qscheetz/Sync/3dEngine-assets/Amusement "
+              "Park/Sky/sol/2k_sun.jpg")
+          .withTransform({0, 900, 0}, {0, 0, 0}, {.001, .001, .001})
+          .withRotationAnimator({0, 1, 0}, 10)
+          .build(),
+
+      // suns light
+      createObject()
+          .withLight({1, 1, 1}, 100.f)
+          .withTransform({0, -50, 0}, {0, 0, 0}, {1, 1, 1}, 3)
+          .build(),
+
+      // floor
+      createObject()
+          .withMesh("/home/qscheetz/Sync/3dEngine-assets/Amusement "
+                    "Park/Floor/",
+                    "plane.obj",
+                    "/home/qscheetz/Sync/3dEngine-assets/Amusement "
+                    "Park/Floor/grass.jpg")
+          .withTransform(glm::vec3{0, 0, 0}, glm::vec3{0, 0, 0},
+                         glm::vec3{WORLD_WIDTH + 5, 1, WORLD_WIDTH + 5})
+          .build(),
+
+  };
+  // ADD COASTER SUPPORTS
+  for (const auto &cfg : genRailsForCoaster(coasterPoints, RAIL_COUNT)) {
+    objectConfigs.push_back(cfg);
+  }
+
+  // ADD COASTER LIGHTS
+  for (const auto &cfg : genLightsForCoaster(coasterPoints, 5, {1, 1, 1})) {
+    objectConfigs.push_back(cfg);
+  }
+  for (const auto &cfg :
+       genLightsForCoaster(coasterPoints, 5, {0, 1, 1}, .5f)) {
+    objectConfigs.push_back(cfg);
+  }
+
+  // MAKE TREES
+  for (int i = -WORLD_WIDTH / 2; i < WORLD_WIDTH / 2; i += 2) {
+    for (int j = -WORLD_WIDTH / 2; j < WORLD_WIDTH / 2; j += 2) {
+      glm::vec3 pos = glm::vec3{i * 10, 0, j * 10};
+      glm::vec3 randOffset = glm::vec3{rand() % 10 - 5, 0, rand() % 10 - 5};
+      glm::vec3 offset = pos + randOffset;
+
+      float randomHeight = TREE_HEIGHT_SCALE + rand() % 3;
+      float randomWidth = TREE_BASE_WIDTH + ((rand() * 10) % 3) / 10.f;
+
+      for (const auto &cfg : genTree(offset, randomHeight, randomWidth, 4, 2)) {
+        objectConfigs.push_back(cfg);
+      }
+    }
+  }
+  std::cerr << "Loading meshes: " << objectConfigs.size() << std::endl;
+  for (const auto &cfg : objectConfigs) {
+    loadObjectFromConfig(cfg);
+  }
 
   loadObjectFromConfig(createObject()
-                           .withLight({1, 1, 1}, 1.f)
-                           .withTransform({0, 5, 0}, {0, 0, 0}, {1, 1, 1})
+                           .withLight({1, 0, 0}, .5f)
+                           .withTransform({0, 50, 0}, {0, 0, 0}, {1, 1, 1})
                            .build());
 
-  Vertex v1;
-  v1.position = glm::vec3(0.0f, 0.0f, 0.0f);
-  v1.texCoord = glm::vec2(0.0f, 0.0f);
-  v1.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+  terrainV1 = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
+  terrainV2 = {{0.0f, -1.f, 3.0f}, {1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
+  terrainV3 = {{5.0f, 0.3f, 0.0f}, {0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}};
 
-  Vertex v2;
-  v2.position = glm::vec3(1.0f, 0.0f, 0.0f);
-  v2.texCoord = glm::vec2(0.0f, 1.0f);
-  v2.normal = glm::vec3(0.0f, 1.0f, 0.0f);
-
-  Vertex v3;
-  v3.position = glm::vec3(0.0f, 0.0f, 1.0f);
-  v3.texCoord = glm::vec2(1.0f, 0.0f);
-  v3.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+  subdivLevel = 0;
+  terrainMesh = std::make_shared<Mesh>();
   FractalTerrain fractalTerrain;
+  terrainMesh->loadVertices(fractalTerrain.generateTerrain(
+      subdivLevel, terrainV1, terrainV2, terrainV3));
 
-  for (int i = 0; i < 7; i++) {
-    auto mesh = std::make_shared<Mesh>();
-    int count =
-        mesh->loadVertices(fractalTerrain.generateTerrain(i, v1, v2, v3));
-    std::cerr << "Generated " << count << " verts" << std::endl;
+  terrainEntityId = registry.createEntity();
+  registry.setMesh(terrainEntityId, std::optional<MeshComp>({terrainMesh}));
+  registry.getMesh(terrainEntityId)
+      .value()
+      .mesh->setTexture(
+          "/home/qscheetz/Sync/3dEngine-assets/Amusement Park/Floor/grass.jpg",
+          TextureType::Image);
+  registry.setTransform(terrainEntityId,
+                        {{0, 20, 30}, {0, 0, 0}, {10, 10, 10}, -1});
 
-    GLuint terrainId = registry.createEntity();
-    registry.setMesh(terrainId, std::optional<MeshComp>({mesh}));
-    registry.setTransform(terrainId,
-                          {{i * 10, 0, 0}, {0, 0, 0}, {5, 5, 5}, -1});
-  }
+  // Light above terrain piece
+  loadObjectFromConfig(
+      createObject().withTransform({0, 35, 30}, {0, 0, 0}, {1, 1, 1}).build());
+
+  std::cerr << "Subdivision level: " << subdivLevel << " (press +/- to change)"
+            << std::endl;
 
   auto prevTime = std::chrono::steady_clock::now();
   float totalTime = 0;
@@ -316,4 +332,34 @@ void App::moveCamera(float deltaTime) {
   } else if (!input.c) {
     input.c_pressed = false;
   }
+
+  //
+  if (input.subdivUp && !input.subdivUp_pressed) {
+    if (subdivLevel < 8) {
+      subdivLevel++;
+      regenerateTerrain();
+    }
+    input.subdivUp_pressed = true;
+  } else if (!input.subdivUp) {
+    input.subdivUp_pressed = false;
+  }
+
+  if (input.subdivDown && !input.subdivDown_pressed) {
+    if (subdivLevel > 0) {
+      subdivLevel--;
+      regenerateTerrain();
+    }
+    input.subdivDown_pressed = true;
+  } else if (!input.subdivDown) {
+    input.subdivDown_pressed = false;
+  }
+}
+
+void App::regenerateTerrain() {
+  FractalTerrain fractalTerrain;
+  auto verts = fractalTerrain.generateTerrain(subdivLevel, terrainV1, terrainV2,
+                                              terrainV3);
+  int count = terrainMesh->loadVertices(verts);
+  std::cerr << "Subdivision level: " << subdivLevel << " (" << count
+            << " vertices)" << std::endl;
 }

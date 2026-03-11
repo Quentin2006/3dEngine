@@ -13,13 +13,14 @@
 #include <glm/gtx/string_cast.hpp>
 
 std::vector<ObjectConfig>
-genLightsForCoaster(const std::vector<glm::vec3> &coasterPoints, int count) {
+genLightsForCoaster(const std::vector<glm::vec3> &coasterPoints, int count,
+                    glm::vec3 color, float phase) {
   std::vector<ObjectConfig> coasterLights = {};
 
   for (int i = 0; i < count; i++) {
-    float phase = (float)i / count;
+    float phase = (float)i / count + phase;
     coasterLights.push_back(
-        {.light = {{1, 1, 1}, 1}, .parAnim = {coasterPoints, .5f, phase}});
+        {.light = {color, 1}, .parAnim = {coasterPoints, .5f, phase}});
   }
 
   return coasterLights;

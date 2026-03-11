@@ -4,7 +4,8 @@
 #include <vector>
 
 std::vector<ObjectConfig>
-genLightsForCoaster(const std::vector<glm::vec3> &coasterPoints, int count);
+genLightsForCoaster(const std::vector<glm::vec3> &coasterPoints, int count,
+                    glm::vec3 color, float phase = 0.f);
 
 std::vector<ObjectConfig> genRailsForCoaster(const std::vector<glm::vec3> &pts,
                                              int count);

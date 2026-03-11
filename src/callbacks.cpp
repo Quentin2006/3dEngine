@@ -50,6 +50,12 @@ void key_callback(GLFWwindow *window, int key, int /*scancode*/, int action,
   case Controls::NEXT_CAMERA:
     input->c = pressed;
     return;
+  case Controls::SUBDIV_UP:
+    input->subdivUp = pressed;
+    return;
+  case Controls::SUBDIV_DOWN:
+    input->subdivDown = pressed;
+    return;
   default:
     return;
   }

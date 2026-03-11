@@ -1,7 +1,17 @@
 #include "fractal_terrain.h"
 #include "vertexBuffer.h"
+#include <cmath>
 #include <glm/common.hpp>
-#include <iostream>
+#include <glm/geometric.hpp>
+
+// Deterministic noise based on position
+// will always compute the same displacement for the shared midpoint.
+static float positionalNoise(const glm::vec3 &pos, float scale) {
+  float h = glm::dot(pos, glm::vec3(127.1f, 311.7f, 74.7f));
+  h = std::sin(h) * 43758.5453f;
+  h = h - std::floor(h);            // fract
+  return (h - 0.5f) * 2.0f * scale; // range [-scale, +scale]
+}
 
 std::vector<Vertex> FractalTerrain::generateTerrain(int subDivCount,
                                                     const Vertex &v1,
@@ -11,32 +21,30 @@ std::vector<Vertex> FractalTerrain::generateTerrain(int subDivCount,
   // repeate subDivCount times
 
   // init points
-  edges.clear();
-  edges.push_back({v1, v2});
-  edges.push_back({v2, v3});
-  edges.push_back({v3, v1});
-
   faces.clear();
   faces.push_back({v1, v2, v3});
 
   generateSubDivEdges(subDivCount);
+
+  // Recompute per-face normals from actual geometry.
+  // After noise displacement the interpolated normals are stale (all still
+  // point straight up). Compute the true face normal via cross product.
+  for (auto &[A, B, C] : faces) {
+    glm::vec3 edge1 = B.position - A.position;
+    glm::vec3 edge2 = C.position - A.position;
+    glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
+    A.normal = faceNormal;
+    B.normal = faceNormal;
+    C.normal = faceNormal;
+  }
+
   std::vector<Vertex> verts;
 
-  // flatten faces into edges
-  for (const std::tuple<Vertex, Vertex, Vertex> &f : faces) {
-    verts.push_back(std::get<0>(f));
-    verts.push_back(std::get<1>(f));
-    verts.push_back(std::get<2>(f));
-
-    // std::cerr << std::get<0>(f).position.x << " " <<
-    // std::get<0>(f).position.y
-    //           << " " << std::get<0>(f).position.z << "\n";
-    // std::cerr << std::get<1>(f).position.x << " " <<
-    // std::get<1>(f).position.y
-    //           << " " << std::get<1>(f).position.z << "\n";
-    // std::cerr << std::get<2>(f).position.x << " " <<
-    // std::get<2>(f).position.y
-    //           << " " << std::get<2>(f).position.z << "\n";
+  // flatten faces into vertex list
+  for (const auto &[A, B, C] : faces) {
+    verts.push_back(A);
+    verts.push_back(B);
+    verts.push_back(C);
   }
 
   return verts;
@@ -45,9 +53,9 @@ std::vector<Vertex> FractalTerrain::generateTerrain(int subDivCount,
 Vertex midVertex(Vertex &v1, Vertex &v2) {
   glm::vec3 pos = glm::mix(v1.position, v2.position, 0.5f);
   glm::vec2 texCoord = glm::mix(v1.texCoord, v2.texCoord, 0.5f);
-  glm::vec3 normal = glm::mix(v1.normal, v2.normal, 0.5f);
 
-  return {pos, texCoord, normal};
+  // Normal is left as default (0,0,0) -- recomputed per-face after subdivision
+  return {pos, texCoord};
 }
 
 void FractalTerrain::generateSubDivEdges(int subDivCount) {
@@ -62,15 +70,18 @@ void FractalTerrain::generateSubDivEdges(int subDivCount) {
     auto B = std::get<1>(faces[i]);
     auto C = std::get<2>(faces[i]);
 
-    // add noise to each vertex
-    A.position += glm::vec3(0, ((rand() % 10) - 5) / 100.f, 0);
-    B.position += glm::vec3(0, ((rand() % 10) - 5) / 100.f, 0);
-    C.position += glm::vec3(0, ((rand() % 10) - 5) / 100.f, 0);
-
-    // Compute midpoints for THIS faces 3 edges
+    // Compute midpoints for THIS face's 3 edges
     Vertex midAB = midVertex(A, B);
     Vertex midBC = midVertex(B, C);
     Vertex midCA = midVertex(C, A);
+
+    // Apply deterministic noise to midpoints AFTER computing them.
+    // Because the noise is a pure function of position, two faces
+    // sharing an edge will produce the exact same displaced midpoint.
+    float noiseScale = 0.05f;
+    midAB.position.y += positionalNoise(midAB.position, noiseScale);
+    midBC.position.y += positionalNoise(midBC.position, noiseScale);
+    midCA.position.y += positionalNoise(midCA.position, noiseScale);
 
     // 4 new faces
     faces.push_back({A, midAB, midCA});

@@ -9,6 +9,5 @@ public:
 
 private:
   void generateSubDivEdges(int subDivCount);
-  std::vector<std::pair<Vertex, Vertex>> edges;
   std::vector<std::tuple<Vertex, Vertex, Vertex>> faces;
 };

@@ -43,7 +43,7 @@ void main()
   vec3 viewDir = normalize(cameraPos - FragPos);
 
   // Ambient lighting contribution (5% of diffuse color)
-  vec3 ambient = diffuseColor.rgb * 0.75;
+  vec3 ambient = diffuseColor.rgb * 0.25;
   vec3 totalLight = vec3(0.0);
 
   // Iterate through all lights in the light block
