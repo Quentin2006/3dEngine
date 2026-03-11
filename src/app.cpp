@@ -44,16 +44,17 @@ App::App(int width, int height, const std::string &title)
     exit(1);
   }
 
-  cameras.push_back(std::shared_ptr<Camera>(new Camera(45.f, width, height)));
+  cameras.push_back(
+      std::shared_ptr<Camera>(new Camera(45.f, width, height, 0.1f, 10000.f)));
   cameraIndex = 0;
 
   glViewport(0, 0, window.getWidth(), window.getHeight());
   glClearColor(0.2f, 0.2f, 0.5f, 1.f);
   glEnable(GL_DEPTH_TEST);
 
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
-  glFrontFace(GL_CCW);
+  // glEnable(GL_CULL_FACE);
+  // glCullFace(GL_BACK);
+  // glFrontFace(GL_CCW);
 
   glfwSetWindowUserPointer(window.getGLFWwindow(), this);
   glfwSetKeyCallback(window.getGLFWwindow(), key_callback);
@@ -175,6 +176,14 @@ void App::run() {
                     "Park/Floor/grass.jpg")
           .withTransform(glm::vec3{0, 0, 0}, glm::vec3{0, 0, 0},
                          glm::vec3{WORLD_WIDTH + 5, 1, WORLD_WIDTH + 5})
+          .build(),
+
+      // "skybox like"
+      createObject()
+          .withMesh(
+              "/home/qscheetz/Sync/3dEngine-assets/3d-cubes/", "cube-tex.obj",
+              "/home/qscheetz/Sync/3dEngine-assets/Amusement Park/Sky/sky.jpg")
+          .withTransform({-1000, -1000, -1000}, {0, 0, 0}, {2000, 2000, 2000})
           .build(),
 
   };
