@@ -1,9 +1,12 @@
-# GLAD Setup Required
+Bundled third-party loader headers:
 
-This directory should contain `glad.h` after generating GLAD.
+- glad/glad.h and KHR/khrplatform.h: GLAD OpenGL loader headers.
+  The matching generated implementation is src/glad.c.
+- stb/stb_image.h: image loader.
+- tol/tiny_obj_loader.h: OBJ model loader.
 
-To generate GLAD:
-1. Visit https://glad.dav1d.de/
-2. Select: Language C/C++, Specification OpenGL, API gl 3.3, Profile Core
-3. Generate and download
-4. Copy include/glad/glad.h to this directory
+The generated GLAD files are already checked in; no generation step is needed
+for a normal build. GLFW development files and GLM headers are system
+dependencies, documented in the repository README.
+
+Retain the license notices in each bundled source/header.

@@ -38,3 +38,7 @@
 
 # debug information files
 *.dwo
+
+# Local build output
+/bin/
+/obj/

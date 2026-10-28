@@ -1,50 +1,67 @@
-# OpenGL Template
+# 3D Engine
 
-OpenGL 3.3 Core template using C++, GLFW, and GLAD.
+A C++17/OpenGL 3.3 scene renderer with entity components, hierarchical transforms, textured Blinn–Phong lighting, spline animation, and procedural geometry. The sample scene combines a spline-driven coaster, generated tube meshes, and subdivided terrain.
 
-## Prerequisites
+## Features
 
-Install GLFW
+- Entity registry and component systems for transforms, meshes, lights, and animation.
+- Parent-child transforms and switchable cameras.
+- GLSL lighting with diffuse/specular textures and uniform buffers for camera and light data.
+- Catmull–Rom paths, tangent-based orientation, and procedural tube meshes.
+- Recursive triangle subdivision with deterministic displacement at shared terrain edges.
+- OBJ loading through TinyObjLoader and image loading through stb_image.
 
-## Building
+This is a learning and experimentation project. It does not claim production-engine performance or a validated frame-rate target.
 
-```bash
-make
-```
+## Requirements
 
-## Running
+The current Makefile targets Linux:
 
-```bash
+- C++17 compiler (`g++` by default), C compiler, and GNU Make.
+- GLFW development headers/library and GLM headers.
+- OpenGL development support (`libGL`) and a display/driver supporting OpenGL 3.3 Core.
+
+GLAD, stb_image, and TinyObjLoader sources/headers are included in the repository. GLFW and GLM must be supplied by the system. The GLM version must provide the `glm/ext` and `glm/gtx` headers used by the source.
+
+## Build and run
+
+```sh
+git clone https://github.com/Quentin2006/3dEngine.git
+cd 3dEngine
+make -j2
 make run
 ```
 
-## Cleaning
+Run from the repository root so relative shader paths resolve. The current executable name is `bin/opengl_template`. `make clean` removes local build output.
 
-```bash
-make clean
-```
+### Sample-scene asset limitation
 
-## Project Structure
+The sample scene in `src/app.cpp` currently points to an external `3dEngine-assets` directory using the author's absolute local paths. Those OBJ files and textures are not bundled here. Before running the sample, supply assets you have permission to use and update the mesh/texture paths in `App::run()`. A fresh clone is therefore a source portfolio and build starting point, not a self-contained demo. This repository does not grant rights to the external assets.
 
-- `src/main.cpp` - Application entry point
-- `src/app.cpp` / `src/app.h` - Main application orchestrator
-  - Owns: Window, Shader, Camera, Buffer, InputState
-  - Manages render loop: input → update uniforms → draw → swap
-- `src/window.cpp` / `src/window.h` - GLFW window abstraction
-  - Window creation, context management, event callbacks
-- `src/shader.cpp` / `src/shader.h` - GLSL shader management
-  - Compiles/loads shader programs from source files
-  - Provides uniform location queries
-- `src/buffer.cpp` / `src/buffer.h` - OpenGL buffer utilities
-  - VAO/VBO creation and vertex data loading
-- `src/camera.cpp` / `src/camera.h` - 3D camera system
-  - Position, rotation (yaw/pitch), view/projection matrices
-- `src/shaders/` - GLSL shader files
-  - `shader.vert` - Vertex shader
-  - `shader.frag` - Fragment shader
-- `src/glad.c` - GLAD loader (OpenGL 3.3 Core)
-- `include/glad/glad.h` - GLAD header
-- `include/KHR/khrplatform.h` - KHR platform header
-- `Makefile` - Build configuration
-- `bin/` - Compiled executable output
-- `obj/` - Object files (build artifacts)
+A graphical session is required to run the renderer. A successful compile alone does not verify rendering output. The repository currently has no automated rendering or performance test suite.
+
+## Controls
+
+| Keys | Action |
+| --- | --- |
+| W / A / S / D | Move the active camera |
+| Q / E | Move down / up |
+| Arrow keys | Rotate the camera |
+| C | Switch camera |
+| + / - | Increase / decrease terrain subdivision |
+
+## Source map
+
+- `src/app.cpp`: sample scene, resources, and render loop.
+- `src/ecs/`: entity registry, components, and update/render systems.
+- `src/math/spline.h`: Catmull–Rom interpolation and path orientation.
+- `src/mesh.cpp`: mesh loading and procedural geometry.
+- `src/fractal_terrain.cpp`: recursive terrain subdivision and normals.
+- `src/shaders/`: vertex and fragment shaders.
+- `src/uniformBuffer.*`: uniform-buffer management.
+- `src/window.*`, `src/camera.*`, `src/callbacks.*`: window, camera, and input handling.
+- `include/`: bundled third-party loader headers.
+
+## License
+
+See [LICENSE](LICENSE). Bundled third-party code retains its own notices.
